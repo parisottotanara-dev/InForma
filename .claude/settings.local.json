@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell($tools = 'git','gh'; foreach \\($t in $tools\\) { $c = Get-Command $t -ErrorAction SilentlyContinue; if \\($c\\) { Write-Output \"$t => $\\($c.Source\\)\" } else { Write-Output \"$t => NON installato\" } }; Write-Output \"---\"; if \\(Get-Command gh -ErrorAction SilentlyContinue\\) { try { gh auth status 2>&1 | Out-String } catch { \"gh non autenticato\" } })"
+    ]
+  }
+}

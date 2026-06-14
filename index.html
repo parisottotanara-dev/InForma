@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0ea5a3">
+  <meta name="description" content="InForma — il tuo piano alimentare e di allenamento personalizzato">
+  <title>InForma — Piano alimentare e allenamento</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ============ ONBOARDING ============ -->
+  <div id="onboarding">
+    <div class="ob-hero">
+      <h1>InForma 💪</h1>
+      <p>Rispondi a poche domande: creeremo il tuo piano alimentare e di allenamento su misura.</p>
+    </div>
+    <div class="ob-body">
+      <div class="ob-progress" id="ob-progress"></div>
+      <div id="ob-step"></div>
+      <div class="ob-nav">
+        <button class="btn secondary" id="ob-back">Indietro</button>
+        <button class="btn" id="ob-next">Avanti</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ APP ============ -->
+  <div id="app">
+    <header class="app-header">
+      <div>
+        <h1>InForma</h1>
+        <div class="sub" id="header-sub"></div>
+      </div>
+      <div class="badge" id="header-goal"></div>
+    </header>
+
+    <main>
+      <section class="view" id="view-oggi"></section>
+      <section class="view" id="view-dieta"></section>
+      <section class="view" id="view-allenamento"></section>
+      <section class="view" id="view-progressi"></section>
+      <section class="view" id="view-profilo"></section>
+    </main>
+
+    <nav class="tabbar">
+      <button data-view="oggi"><span class="ico">🏠</span>Oggi</button>
+      <button data-view="dieta"><span class="ico">🍽️</span>Dieta</button>
+      <button data-view="allenamento"><span class="ico">🏋️</span>Workout</button>
+      <button data-view="progressi"><span class="ico">📈</span>Progressi</button>
+      <button data-view="profilo"><span class="ico">👤</span>Profilo</button>
+    </nav>
+  </div>
+
+  <!-- ============ MODAL / TOAST ============ -->
+  <div id="modal-overlay"><div id="modal"></div></div>
+  <div id="toast"></div>
+
+  <script src="js/store.js" defer></script>
+  <script src="js/engine.js" defer></script>
+  <script src="js/foods.js" defer></script>
+  <script src="js/meals.js" defer></script>
+  <script src="js/workouts.js" defer></script>
+  <script src="js/app.js" defer></script>
+</body>
+</html>

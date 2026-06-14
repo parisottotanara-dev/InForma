@@ -1,0 +1,9 @@
+# File di sistema Windows/macOS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# Backup esportati dall'app (contengono dati personali, non vanno pubblicati)
+informa-backup-*.json
