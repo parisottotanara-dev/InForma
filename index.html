@@ -20,8 +20,8 @@
   <script>
     try {
       var _d = JSON.parse(localStorage.getItem('informa.data.v1') || '{}');
-      if (_d && _d.theme) document.documentElement.setAttribute('data-theme', _d.theme);
-    } catch (e) {}
+      document.documentElement.setAttribute('data-theme', (_d && _d.theme) ? _d.theme : 'agrumi');
+    } catch (e) { document.documentElement.setAttribute('data-theme', 'agrumi'); }
   </script>
 
   <link rel="stylesheet" href="css/style.css">
