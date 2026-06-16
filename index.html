@@ -3,15 +3,59 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0ea5a3">
+  <meta name="theme-color" content="#090d12">
   <meta name="description" content="InForma — il tuo piano alimentare e di allenamento personalizzato">
   <title>InForma — Piano alimentare e allenamento</title>
+
+  <!-- PWA / aspetto su iPhone -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="InForma">
+
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+  <!-- Applica il tema salvato prima del render, per evitare lo "sfarfallio" -->
+  <script>
+    try {
+      var _d = JSON.parse(localStorage.getItem('informa.data.v1') || '{}');
+      if (_d && _d.theme) document.documentElement.setAttribute('data-theme', _d.theme);
+    } catch (e) {}
+  </script>
+
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
+  <!-- ============ SPLASH / SCHERMATA D'AVVIO ============ -->
+  <div id="splash">
+    <svg class="logo" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <linearGradient id="s-tile" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#0f766e"/><stop offset="0.55" stop-color="#0ea5a3"/><stop offset="1" stop-color="#0b3b39"/>
+        </linearGradient>
+        <radialGradient id="s-glow" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stop-color="#5eead4" stop-opacity="0.55"/><stop offset="1" stop-color="#5eead4" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="s-bar" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#f0fdfa"/><stop offset="1" stop-color="#99f6e4"/>
+        </linearGradient>
+      </defs>
+      <rect width="512" height="512" rx="116" fill="url(#s-tile)"/>
+      <ellipse cx="256" cy="256" rx="150" ry="150" fill="url(#s-glow)"/>
+      <g fill="url(#s-bar)">
+        <rect x="196" y="241" width="120" height="30" rx="15"/>
+        <rect x="156" y="216" width="34" height="80" rx="15"/>
+        <rect x="322" y="216" width="34" height="80" rx="15"/>
+        <rect x="120" y="196" width="30" height="120" rx="14"/>
+        <rect x="362" y="196" width="30" height="120" rx="14"/>
+      </g>
+    </svg>
+    <div class="title">InForma</div>
+    <div class="tag">Il tuo piano su misura</div>
+    <div class="bar"></div>
+  </div>
 
   <!-- ============ ONBOARDING ============ -->
   <div id="onboarding">

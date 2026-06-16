@@ -360,11 +360,32 @@ function weightChart(weights, profile, targets) {
 /* =====================================================================
    APP — schermate
    ===================================================================== */
+const THEMES = [
+  { id: 'teal',     name: 'Teal notte', sw: 'linear-gradient(135deg,#2dd4bf,#34d399)' },
+  { id: 'neon',     name: 'Neon',       sw: 'linear-gradient(135deg,#a3e635,#22d3ee)' },
+  { id: 'energico', name: 'Energico',   sw: 'linear-gradient(135deg,#ff6b3d,#ff9f1c)' },
+  { id: 'aurora',   name: 'Aurora',     sw: 'linear-gradient(160deg,#4f46e5,#7c3aed,#c026d3,#f97316)' },
+  { id: 'carta',    name: 'Carta',      sw: 'linear-gradient(135deg,#f6f2e9,#1f7a53)' }
+];
+
 const App = {
   currentView: 'oggi',
   dietDay: todayIdx(),
 
+  applyTheme(id) {
+    document.documentElement.setAttribute('data-theme', id || 'teal');
+  },
+
+  setTheme(id) {
+    Store.data.theme = id;
+    Store.save();
+    this.applyTheme(id);
+    this.renderProfilo();
+    toast('Tema applicato ✨');
+  },
+
   enter() {
+    this.applyTheme(Store.data.theme);
     $('#onboarding').classList.remove('active');
     $('#app').classList.add('active');
     this.show(this.currentView);
@@ -739,7 +760,19 @@ const App = {
     const goal = Engine.GOALS.find(g => g.id === p.goal);
     const exLbl = { lattosio: 'senza lattosio', glutine: 'senza glutine', pesce: 'niente pesce', frutta_secca: 'niente frutta secca' };
 
+    const curTheme = d.theme || 'teal';
     $('#view-profilo').innerHTML = `
+      <div class="card">
+        <h3>🎨 Aspetto</h3>
+        <p class="hint">Tocca un tema per provarlo subito su tutta l'app.</p>
+        <div class="theme-grid">
+          ${THEMES.map(t => `
+            <button class="theme-opt ${t.id === curTheme ? 'selected' : ''}" onclick="App.setTheme('${t.id}')">
+              <div class="sw" style="background:${t.sw}"></div>
+              <div class="nm">${t.name}</div>
+            </button>`).join('')}
+        </div>
+      </div>
       <div class="card">
         <h3>👤 ${esc(p.name)}</h3>
         <ul class="clean">
@@ -847,4 +880,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   init();
+
+  // Nasconde la schermata d'avvio dopo un breve momento (resta visibile
+  // quanto basta a non farla "sfarfallare", poi sfuma).
+  const splash = $('#splash');
+  if (splash) {
+    setTimeout(() => {
+      splash.classList.add('hide');
+      splash.addEventListener('transitionend', () => splash.remove(), { once: true });
+    }, 1100);
+  }
 });

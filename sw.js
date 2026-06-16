@@ -1,7 +1,7 @@
 /* InForma — service worker: rende l'app installabile e disponibile offline. */
 'use strict';
 
-const CACHE = 'informa-v1';
+const CACHE = 'informa-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -15,7 +15,9 @@ const ASSETS = [
   './manifest.webmanifest',
   './icons/icon.svg',
   './icons/icon-192.png',
-  './icons/icon-512.png'
+  './icons/icon-512.png',
+  './icons/icon-192-maskable.png',
+  './icons/icon-512-maskable.png'
 ];
 
 self.addEventListener('install', e => {
