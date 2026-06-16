@@ -361,7 +361,7 @@ function weightChart(weights, profile, targets) {
    APP — schermate
    ===================================================================== */
 const THEMES = [
-  { id: 'agrumi',   name: 'Agrumi',     sw: 'linear-gradient(135deg,#fffaf2 0%,#ff8a3d 55%,#f2542d 100%)' },
+  { id: 'brace',    name: 'Brace',      sw: 'radial-gradient(120% 120% at 75% 25%, #ffb347 0%, #ff6b3d 36%, #1a0f0a 74%, #0a0a0c 100%)' },
   { id: 'teal',     name: 'Teal notte', sw: 'linear-gradient(135deg,#2dd4bf,#34d399)' },
   { id: 'neon',     name: 'Neon',       sw: 'linear-gradient(135deg,#a3e635,#22d3ee)' },
   { id: 'energico', name: 'Energico',   sw: 'linear-gradient(135deg,#ff6b3d,#ff9f1c)' },
@@ -374,7 +374,7 @@ const App = {
   dietDay: todayIdx(),
 
   applyTheme(id) {
-    document.documentElement.setAttribute('data-theme', id || 'agrumi');
+    document.documentElement.setAttribute('data-theme', id || 'brace');
   },
 
   setTheme(id) {

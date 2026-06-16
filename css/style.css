@@ -56,47 +56,46 @@
   --radius-sm: 14px;
 }
 
-/* ---------- TEMA: AGRUMI (chiaro/pulito come Carta + colori vivaci di Energico) ---------- */
-html[data-theme="agrumi"] {
-  --brand: #f2542d;
+/* ---------- TEMA: BRACE (Energico in versione scura: nero + arancio acceso) ---------- */
+html[data-theme="brace"] {
+  --brand: #ff6b3d;
   --brand-2: #ff9f1c;
-  --brand-soft: #cf471d;
+  --brand-soft: #ff8a5c;
   --grad: linear-gradient(135deg, #ff6b3d, #ff9f1c);
-  --btn-fg: #ffffff;
-  --accent: #0d9488;
+  --btn-fg: #1a0d05;
+  --accent: #2dd4bf;
 
-  --bg: #faf7f1;
+  --bg: #0a0a0c;
   --bg-image:
-    radial-gradient(46% 38% at 100% 0%, rgba(255, 107, 61, .08), transparent 60%),
-    radial-gradient(40% 34% at 0% 4%, rgba(13, 148, 136, .05), transparent 60%);
+    radial-gradient(55% 42% at 100% 0%, rgba(255, 107, 61, .16), transparent 60%),
+    radial-gradient(46% 38% at 0% 6%, rgba(255, 159, 28, .09), transparent 60%);
 
-  --text: #221c17;
-  --muted: #6f675e;
-  --muted-2: #a59c91;
+  --text: #f4f1ee;
+  --muted: rgba(244, 241, 238, .56);
+  --muted-2: rgba(244, 241, 238, .36);
 
-  --card-bg: #fffdf9;
-  --card-border: rgba(34, 28, 23, .08);
+  --card-bg: #151418;
+  --card-border: rgba(255, 255, 255, .08);
   --card-blur: 0px;
-  --card-shadow: 0 10px 26px -18px rgba(34, 28, 23, .3);
+  --card-shadow: 0 12px 32px -18px rgba(0, 0, 0, .8);
 
-  --surface: #f5f1e8;
-  --surface-2: #efe9dd;
-  --line: rgba(34, 28, 23, .09);
-  --line-2: rgba(34, 28, 23, .14);
-  --input-bg: #fbf8f2;
+  --surface: rgba(255, 255, 255, .04);
+  --surface-2: rgba(255, 255, 255, .07);
+  --line: rgba(255, 255, 255, .08);
+  --line-2: rgba(255, 255, 255, .15);
+  --input-bg: rgba(255, 255, 255, .05);
 
-  --chip-bg: rgba(242, 84, 45, .12);
-  --chip-border: rgba(242, 84, 45, .3);
-  --sel-bg: rgba(242, 84, 45, .1);
+  --chip-bg: rgba(255, 107, 61, .15);
+  --chip-border: rgba(255, 107, 61, .34);
+  --sel-bg: rgba(255, 107, 61, .12);
 
-  --header-bg: rgba(250, 247, 241, .82);
-  --nav-bg: rgba(255, 253, 249, .9);
-  --modal-bg: rgba(255, 253, 249, .98);
+  --header-bg: rgba(10, 10, 12, .66);
+  --nav-bg: rgba(10, 10, 12, .78);
+  --modal-bg: rgba(22, 21, 26, .94);
 
-  --prot: #f2542d; --carb: #f59e0b; --fat: #7c3aed;
-  --glow: 0 8px 20px -10px rgba(242, 84, 45, .45);
-  --date-invert: 0;
-  --heading-font: Georgia, 'Times New Roman', 'Iowan Old Style', serif;
+  --prot: #ff6b3d; --carb: #fbbf24; --fat: #a78bfa;
+  --glow: 0 0 24px rgba(255, 107, 61, .32);
+  --date-invert: 0.85;
 }
 
 /* ---------- TEMA: NEON (scuro + lime/ciano elettrico) ---------- */

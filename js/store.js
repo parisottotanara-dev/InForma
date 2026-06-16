@@ -15,7 +15,7 @@ const Store = {
     return {
       version: 1,
       createdAt: new Date().toISOString(),
-      theme: 'agrumi',    // tema grafico scelto
+      theme: 'brace',     // tema grafico scelto
       profile: null,      // dati inseriti nell'onboarding
       targets: null,      // kcal e macro calcolati dal motore
       mealPlan: null,     // piano alimentare settimanale
