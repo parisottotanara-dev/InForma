@@ -405,6 +405,36 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(var(--date-
 .ring-txt .big { font-size: 1.6rem; font-weight: 800; }
 .ring-txt .small { color: var(--muted); font-size: .8rem; }
 
+/* ---------- Home "Oggi" ---------- */
+.oggi-hero { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.oggi-hero .hello { align-self: flex-start; font-size: 1.08rem; font-weight: 700; font-family: var(--heading-font); margin-bottom: 2px; }
+.cal-ring { display: block; margin: 6px auto 4px; }
+.cal-ring .cr-big { font-size: 28px; font-weight: 800; font-family: var(--heading-font); fill: var(--text); }
+.cal-ring .cr-lbl { font-size: 11px; fill: var(--muted); }
+.oggi-hero .motiv { font-size: .86rem; color: var(--muted); margin: 0 0 16px; max-width: 290px; line-height: 1.5; }
+.oggi-hero .motiv b { color: var(--text); }
+.macro3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; }
+.macro3 .m { text-align: left; }
+.macro3 .m-top { font-size: .76rem; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+.macro3 .m-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
+.macro3 .m-val { font-size: .95rem; margin: 3px 0 5px; }
+.macro3 .m-val .hint { font-size: .72rem; }
+.macro3 .track { height: 6px; border-radius: 5px; background: var(--line-2); overflow: hidden; }
+.macro3 .fill { height: 100%; border-radius: 5px; transition: width .5s ease; }
+
+.weekstrip { display: flex; justify-content: space-between; gap: 6px; margin-top: 14px; }
+.weekstrip .wk { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
+.weekstrip .wk > span { font-size: .68rem; color: var(--muted); }
+.wk-dot {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .8rem; font-weight: 700;
+  background: var(--surface-2); border: 1px solid var(--line); color: var(--text);
+}
+.wk-dot.planned { background: transparent; border: 1.5px dashed var(--brand); color: var(--brand-soft); }
+.wk-dot.done { background: var(--grad); border-color: transparent; color: var(--btn-fg); }
+.wk-dot.today { box-shadow: 0 0 0 2px var(--accent); }
+
 /* ---------- Pasti ---------- */
 .meal { border: 1px solid var(--line); background: var(--surface); border-radius: 14px; padding: 12px 13px; margin-bottom: 9px; transition: opacity .2s; }
 .meal .slot { font-size: .7rem; font-weight: 700; text-transform: uppercase; color: var(--brand-soft); letter-spacing: .6px; }
@@ -494,7 +524,7 @@ ul.bullets li { margin-bottom: 6px; }
   transition: opacity .55s ease, visibility .55s ease;
 }
 #splash.hide { opacity: 0; visibility: hidden; }
-#splash .logo { width: 108px; height: 108px; filter: drop-shadow(0 10px 34px rgba(45, 212, 191, .5)); animation: splashpop .8s cubic-bezier(.2, .85, .25, 1) both; }
+#splash .logo { width: 108px; height: 108px; filter: drop-shadow(0 10px 34px rgba(255, 107, 61, .5)); animation: splashpop .8s cubic-bezier(.2, .85, .25, 1) both; }
 #splash .title { font-size: 2rem; font-weight: 800; letter-spacing: .4px; background: var(--grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: splashup .7s .12s both; }
 #splash .tag { color: var(--muted); font-size: .9rem; margin-top: -10px; animation: splashup .7s .2s both; }
 #splash .bar { width: 132px; height: 4px; border-radius: 4px; background: var(--line-2); overflow: hidden; animation: splashup .7s .28s both; }

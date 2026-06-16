@@ -411,76 +411,103 @@ const App = {
     const day = d.mealPlan.days[todayIdx()];
     const checked = d.mealLog[todayStr()] || [];
 
-    const protK = t.protein * 4, carbK = t.carbs * 4, fatK = t.fat * 9;
-    const tot = protK + carbK + fatK;
-    const donut = (() => {
-      const r = 42, c = 2 * Math.PI * r;
-      const segs = [[protK, 'var(--prot)'], [carbK, 'var(--carb)'], [fatK, 'var(--fat)']];
-      let off = 0, out = '';
-      segs.forEach(([v, col]) => {
-        const len = (v / tot) * c;
-        out += `<circle r="${r}" cx="55" cy="55" fill="none" stroke="${col}" stroke-width="13"
-                stroke-dasharray="${len} ${c - len}" stroke-dashoffset="${-off}" transform="rotate(-90 55 55)"/>`;
-        off += len;
-      });
-      return `<svg width="110" height="110" viewBox="0 0 110 110">${out}
-        <text x="55" y="51" text-anchor="middle" font-size="20" font-weight="700" fill="var(--text)">${t.kcal}</text>
-        <text x="55" y="68" text-anchor="middle" font-size="10" fill="var(--muted)">kcal/giorno</text></svg>`;
-    })();
+    // consumo di oggi, calcolato dai pasti spuntati
+    const eaten = checked.reduce((a, i) => {
+      const s = day.slots[i];
+      return s ? { kcal: a.kcal + s.kcal, prot: a.prot + s.prot, carb: a.carb + s.carb, fat: a.fat + s.fat } : a;
+    }, { kcal: 0, prot: 0, carb: 0, fat: 0 });
 
-    const macro = (lbl, v, kcal, col) => `
-      <div class="macro-bar">
-        <div class="row between"><span>${lbl}</span><b>${v} g</b></div>
-        <div class="track"><div class="fill" style="width:${Math.round((kcal / tot) * 100)}%;background:${col}"></div></div>
+    const remaining = t.kcal - eaten.kcal;
+    const over = remaining < 0;
+    const pct = Math.max(0, Math.min(1, t.kcal ? eaten.kcal / t.kcal : 0));
+    const R = 52, C = 2 * Math.PI * R, dash = pct * C;
+
+    const ring = `
+      <svg class="cal-ring" viewBox="0 0 130 130" width="152" height="152" aria-hidden="true">
+        <circle cx="65" cy="65" r="${R}" fill="none" stroke="var(--line-2)" stroke-width="11"/>
+        <circle cx="65" cy="65" r="${R}" fill="none" stroke="${over ? 'var(--danger)' : 'var(--brand)'}" stroke-width="11"
+                stroke-linecap="round" stroke-dasharray="${dash.toFixed(1)} ${(C - dash).toFixed(1)}" transform="rotate(-90 65 65)"/>
+        <text x="65" y="62" text-anchor="middle" class="cr-big">${over ? '+' + Math.abs(remaining) : remaining}</text>
+        <text x="65" y="82" text-anchor="middle" class="cr-lbl">kcal ${over ? 'oltre' : 'rimaste'}</text>
+      </svg>`;
+
+    let motiv;
+    if (eaten.kcal === 0) motiv = 'Spunta i pasti man mano che li mangi: tengo io il conto. 🍽️';
+    else if (over) motiv = `Hai superato di <b>${Math.abs(remaining)} kcal</b> — capita, domani si riparte. 💪`;
+    else if (remaining <= t.kcal * 0.06) motiv = 'Sei perfettamente in linea con l\'obiettivo di oggi! 👏';
+    else motiv = `Ti restano <b>${remaining} kcal</b> per chiudere la giornata.`;
+
+    const macroProg = (lbl, val, target, col) => {
+      const p = Math.max(0, Math.min(1, target ? val / target : 0));
+      return `<div class="m">
+        <div class="m-top"><span class="m-dot" style="background:${col}"></span>${lbl}</div>
+        <div class="m-val"><b>${Math.round(val)}</b><span class="hint"> / ${target} g</span></div>
+        <div class="track"><div class="fill" style="width:${Math.round(p * 100)}%;background:${col}"></div></div>
       </div>`;
+    };
 
     // allenamento di oggi
     const wp = d.workoutPlan;
-    const ti = todayIdx();
-    const pos = wp.trainWeekdays.indexOf(ti);
+    const pos = wp.trainWeekdays.indexOf(todayIdx());
     const done = !!d.workoutLog[todayStr()];
-    let workoutCard;
+    let workoutBody;
     if (pos >= 0) {
       const wd = wp.days[pos % wp.days.length];
-      workoutCard = `
-        <div class="card">
-          <h3>🏋️ Allenamento di oggi</h3>
-          <div class="row between">
-            <div><b>${wd.name}</b><div class="hint">${wd.ex.length} esercizi · ${wp.split}</div></div>
-            <span class="badge">${done ? '✔ Fatto' : 'In programma'}</span>
-          </div>
-          <div class="row mt">
-            <button class="btn small secondary grow" onclick="App.show('allenamento')">Vedi scheda</button>
-            <button class="btn small grow" onclick="App.toggleWorkoutDone()">${done ? 'Annulla ✔' : 'Segna come fatto ✔'}</button>
-          </div>
+      workoutBody = `
+        <div class="row between">
+          <div><b>${wd.name}</b><div class="hint">${wd.ex.length} esercizi · ${wp.split}</div></div>
+          <span class="badge">${done ? '✔ Fatto' : 'In programma'}</span>
+        </div>
+        <div class="row mt">
+          <button class="btn small secondary grow" onclick="App.show('allenamento')">Vedi scheda</button>
+          <button class="btn small grow" onclick="App.toggleWorkoutDone()">${done ? 'Annulla ✔' : 'Segna come fatto ✔'}</button>
         </div>`;
     } else {
       const c = wp.cardio.sessions[0];
-      workoutCard = `
-        <div class="card">
-          <h3>🧘 Oggi riposo</h3>
-          <p class="hint mb0">Recupero attivo consigliato: ${c.name.toLowerCase()}, ${c.dur}. E punta a ${wp.cardio.steps}.</p>
-        </div>`;
+      workoutBody = `<p class="hint mb0">Oggi è riposo. Recupero attivo consigliato: ${c.name.toLowerCase()}, ${c.dur}. E punta a ${wp.cardio.steps}.</p>`;
     }
 
     $('#view-oggi').innerHTML = `
-      <div class="card">
-        <h3>Ciao ${esc(d.profile.name)} 👋</h3>
-        <div class="ring-wrap">
-          ${donut}
-          <div class="grow">
-            ${macro('Proteine', t.protein, protK, 'var(--prot)')}
-            ${macro('Carboidrati', t.carbs, carbK, 'var(--carb)')}
-            ${macro('Grassi', t.fat, fatK, 'var(--fat)')}
-          </div>
+      <div class="card oggi-hero">
+        <div class="hello">Ciao ${esc(d.profile.name)} 👋</div>
+        ${ring}
+        <div class="motiv">${motiv}</div>
+        <div class="macro3">
+          ${macroProg('Proteine', eaten.prot, t.protein, 'var(--prot)')}
+          ${macroProg('Carbo', eaten.carb, t.carbs, 'var(--carb)')}
+          ${macroProg('Grassi', eaten.fat, t.fat, 'var(--fat)')}
         </div>
       </div>
-      ${workoutCard}
       <div class="card">
-        <h3>🍽️ I pasti di oggi</h3>
-        ${day.slots.map((s, i) => this.mealHtml(s, i, todayIdx(), checked.includes(i), true)).join('')}
+        <h3>${pos >= 0 ? '🏋️ Allenamento di oggi' : '🧘 Oggi riposo'}</h3>
+        ${workoutBody}
+        ${this.weekStrip()}
+      </div>
+      <div class="card">
+        <div class="row between"><h3 class="mb0">🍽️ I pasti di oggi</h3><span class="badge">${checked.length}/${day.slots.length} fatti</span></div>
+        <div class="mt">
+          ${day.slots.map((s, i) => this.mealHtml(s, i, todayIdx(), checked.includes(i), true)).join('')}
+        </div>
         <p class="hint mb0">💧 Bevi circa <b>${t.water} L</b> di acqua oggi.</p>
       </div>`;
+  },
+
+  // striscia degli allenamenti della settimana corrente (lun→dom)
+  weekStrip() {
+    const d = Store.data, wp = d.workoutPlan;
+    const now = new Date();
+    const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - todayIdx());
+    const letters = ['L', 'M', 'M', 'G', 'V', 'S', 'D'];
+    let out = '<div class="weekstrip">';
+    for (let i = 0; i < 7; i++) {
+      const dt = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
+      const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+      const isDone = !!d.workoutLog[key];
+      const planned = wp.trainWeekdays.includes(i);
+      const cls = ['wk-dot', isDone ? 'done' : '', (planned && !isDone) ? 'planned' : '', i === todayIdx() ? 'today' : ''].filter(Boolean).join(' ');
+      out += `<div class="wk"><div class="${cls}">${isDone ? '✓' : ''}</div><span>${letters[i]}</span></div>`;
+    }
+    return out + '</div>';
   },
 
   mealHtml(s, slotIdx, dayIdx, isChecked, checkable) {

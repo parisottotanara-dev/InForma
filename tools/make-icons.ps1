@@ -43,14 +43,14 @@ function Draw-Icon([int]$size, [bool]$maskable) {
     # --- tile con gradiente teal (3 stop) ---
     $tile = New-Object System.Drawing.Drawing2D.LinearGradientBrush(
         $rect,
-        [System.Drawing.Color]::FromArgb(255, 15, 118, 110),
-        [System.Drawing.Color]::FromArgb(255, 11, 59, 57),
+        [System.Drawing.Color]::FromArgb(255, 255, 166, 43),
+        [System.Drawing.Color]::FromArgb(255, 232, 78, 34),
         45.0)
     $blend = New-Object System.Drawing.Drawing2D.ColorBlend(3)
     $blend.Colors = @(
-        [System.Drawing.Color]::FromArgb(255, 15, 118, 110),
-        [System.Drawing.Color]::FromArgb(255, 14, 165, 163),
-        [System.Drawing.Color]::FromArgb(255, 11, 59, 57))
+        [System.Drawing.Color]::FromArgb(255, 255, 166, 43),
+        [System.Drawing.Color]::FromArgb(255, 255, 107, 61),
+        [System.Drawing.Color]::FromArgb(255, 232, 78, 34))
     $blend.Positions = @(0.0, 0.55, 1.0)
     $tile.InterpolationColors = $blend
     $tilePath = New-RoundedPath 0 0 $size $size $corner
@@ -62,8 +62,8 @@ function Draw-Icon([int]$size, [bool]$maskable) {
     $glowPath.AddEllipse($cx - $gr, $cy - $gr, $gr * 2, $gr * 2)
     $glow = New-Object System.Drawing.Drawing2D.PathGradientBrush($glowPath)
     $glow.CenterPoint = New-Object System.Drawing.PointF($cx, $cy)
-    $glow.CenterColor = [System.Drawing.Color]::FromArgb(150, 94, 234, 212)
-    $glow.SurroundColors = @([System.Drawing.Color]::FromArgb(0, 94, 234, 212))
+    $glow.CenterColor = [System.Drawing.Color]::FromArgb(160, 255, 246, 237)
+    $glow.SurroundColors = @([System.Drawing.Color]::FromArgb(0, 255, 246, 237))
     $g.FillPath($glow, $glowPath)
 
     # --- sheen diagonale (vetro) in alto a sinistra ---
@@ -79,8 +79,8 @@ function Draw-Icon([int]$size, [bool]$maskable) {
     $barRect = New-Object System.Drawing.Rectangle([int](120 * $s), [int](196 * $s), [int](272 * $s), [int](120 * $s))
     $barBrush = New-Object System.Drawing.Drawing2D.LinearGradientBrush(
         $barRect,
-        [System.Drawing.Color]::FromArgb(255, 240, 253, 250),
-        [System.Drawing.Color]::FromArgb(255, 153, 246, 228),
+        [System.Drawing.Color]::FromArgb(255, 255, 250, 242),
+        [System.Drawing.Color]::FromArgb(255, 255, 224, 200),
         90.0)
     foreach ($b in $BAR) {
         $p = New-RoundedPath ($b[0] * $s) ($b[1] * $s) ($b[2] * $s) ($b[3] * $s) ($b[4] * $s)
