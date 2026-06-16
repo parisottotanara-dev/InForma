@@ -563,12 +563,25 @@ const App = {
   },
 
   /* ---------------- DIETA ---------------- */
+  // griglia di 3 barre macro (valore vs obiettivo), riusata da più schermate
+  macroGrid(rows) {
+    return '<div class="macro3">' + rows.map(([lbl, val, target, col]) => {
+      const p = Math.max(0, Math.min(1, target ? val / target : 0));
+      return `<div class="m">
+        <div class="m-top"><span class="m-dot" style="background:${col}"></span>${lbl}</div>
+        <div class="m-val"><b>${Math.round(val)}</b><span class="hint"> / ${target} g</span></div>
+        <div class="track"><div class="fill" style="width:${Math.round(p * 100)}%;background:${col}"></div></div>
+      </div>`;
+    }).join('') + '</div>';
+  },
+
   renderDieta() {
     const d = Store.data;
     const t = d.targets;
     const di = this.dietDay;
     const day = d.mealPlan.days[di];
     const tot = Meals.dayTotals(day);
+    const kcalPct = Math.round(Math.max(0, Math.min(1, t.kcal ? tot.kcal / t.kcal : 0)) * 100);
 
     $('#view-dieta').innerHTML = `
       <div class="day-tabs">
@@ -580,14 +593,18 @@ const App = {
           <h3 class="mb0">${DAYS_FULL[di]}</h3>
           <span class="badge">${tot.kcal} / ${t.kcal} kcal</span>
         </div>
-        <p class="hint">P ${tot.prot} g · C ${tot.carb} g · G ${tot.fat} g — obiettivo: P ${t.protein} · C ${t.carbs} · G ${t.fat}</p>
+        <div class="macro-bar" style="margin:12px 0 4px"><div class="track"><div class="fill" style="width:${kcalPct}%;background:var(--grad)"></div></div></div>
+        ${this.macroGrid([['Proteine', tot.prot, t.protein, 'var(--prot)'], ['Carbo', tot.carb, t.carbs, 'var(--carb)'], ['Grassi', tot.fat, t.fat, 'var(--fat)']])}
+      </div>
+      <div class="card">
+        <h3>🍽️ I pasti</h3>
         ${day.slots.map((s, i) => this.mealHtml(s, i, di, false, false)).join('')}
       </div>
       <div class="row">
-        <button class="btn secondary grow" onclick="App.showShoppingList()">🛒 Lista della spesa</button>
-        <button class="btn secondary grow" onclick="App.regenerateMeals()">🔄 Rigenera settimana</button>
+        <button class="btn secondary grow" onclick="App.showShoppingList()">🛒 Lista spesa</button>
+        <button class="btn secondary grow" onclick="App.regenerateMeals()">🔄 Rigenera</button>
       </div>
-      <p class="hint mt">Le grammature si riferiscono al peso a crudo. Verdura e condimenti sono liberi entro il buonsenso; il piano centra le calorie con uno scarto fisiologico di ±5%.</p>`;
+      <p class="hint mt">Le grammature sono a crudo. Verdura e condimenti liberi entro il buonsenso; il piano centra le calorie con uno scarto fisiologico di ±5%.</p>`;
   },
 
   showShoppingList() {
@@ -628,10 +645,13 @@ const App = {
     const loc = wp.location;
     const trainDaysLbl = wp.trainWeekdays.map(i => DAYS_SHORT[i]).join(', ');
 
+    const locLbl = loc === 'casa' ? 'Corpo libero / casa' : loc === 'misto' ? 'Palestra + alternative casa' : 'Palestra';
+
     const dayCard = (wd, i) => `
       <div class="card workout-day ${i === 0 ? 'open' : ''}" id="wd-${i}">
         <div class="wd-head" onclick="document.getElementById('wd-${i}').classList.toggle('open')">
-          <h4>${wd.name}</h4><span class="muted">▾</span>
+          <div><h4>${wd.name}</h4><div class="hint">${wd.ex.length} esercizi · ${[...new Set(wd.ex.map(e => e.muscle))].slice(0, 3).join(' · ')}</div></div>
+          <span class="muted">▾</span>
         </div>
         <table class="ex-table">
           ${wd.ex.map(ex => `
@@ -648,9 +668,9 @@ const App = {
 
     $('#view-allenamento').innerHTML = `
       <div class="card">
-        <h3>📋 La tua scheda: ${wp.split}</h3>
-        <p class="hint mb0">${wp.days.length} sedute a settimana — giorni consigliati: <b>${trainDaysLbl}</b>.
-        ${loc === 'casa' ? 'Versione a corpo libero / casa.' : loc === 'misto' ? 'Versione palestra con alternative per casa.' : ''}</p>
+        <h3>📋 ${wp.split}</h3>
+        <p class="hint">${wp.days.length} sedute a settimana · ${locLbl}<br>Giorni consigliati: <b>${trainDaysLbl}</b></p>
+        ${this.weekStrip()}
       </div>
       ${wp.days.map(dayCard).join('')}
       <div class="card">
@@ -674,6 +694,35 @@ const App = {
     const ws = d.weights.slice().sort((a, b) => a.date.localeCompare(b.date));
     const last = ws[ws.length - 1];
     const first = ws[0];
+    const goalObj = Engine.GOALS.find(g => g.id === p.goal);
+
+    // riepilogo obiettivo: avvicinamento al peso target
+    let goalHtml = '';
+    if (last) {
+      if (p.goal === 'mantenere') {
+        goalHtml = `
+          <div class="card goal-hero">
+            <div class="hello">${goalObj.label}</div>
+            <div class="goal-now"><span class="gw">${last.kg.toFixed(1)}</span><span class="gu">kg oggi</span></div>
+            <div class="goal-msg">Obiettivo: restare intorno ai <b>${p.weight} kg</b> migliorando la composizione corporea.</div>
+          </div>`;
+      } else {
+        const start = t.startWeight, target = p.targetWeight, cur = last.kg;
+        const total = Math.abs(target - start) || 1;
+        const frac = Math.max(0, Math.min(1, Math.abs(cur - start) / total));
+        const remainingKg = Math.abs(target - cur);
+        goalHtml = `
+          <div class="card goal-hero">
+            <div class="row between"><div class="hello">${goalObj.label}</div><span class="badge">${Math.round(frac * 100)}%</span></div>
+            <div class="goal-now"><span class="gw">${cur.toFixed(1)}</span><span class="gu">kg oggi</span></div>
+            <div class="goalbar">
+              <div class="g-track"><div class="g-fill" style="width:${(frac * 100).toFixed(0)}%"></div><div class="g-knob" style="left:${(frac * 100).toFixed(0)}%"></div></div>
+              <div class="g-ends"><span>${start.toFixed(1)} kg</span><span>🎯 ${target.toFixed(1)} kg</span></div>
+            </div>
+            <div class="goal-msg">${remainingKg < 0.1 ? 'Obiettivo raggiunto! 🎉' : `Ti mancano <b>${remainingKg.toFixed(1)} kg</b> all'obiettivo.`}</div>
+          </div>`;
+      }
+    }
 
     let statsHtml = '';
     if (last) {
@@ -697,6 +746,7 @@ const App = {
     const adh = Math.min(100, Math.round((doneCount / planned) * 100));
 
     $('#view-progressi').innerHTML = `
+      ${goalHtml}
       <div class="card">
         <h3>⚖️ Registra il peso di oggi</h3>
         <div class="row">
@@ -714,7 +764,7 @@ const App = {
       <div class="card">
         <h3>💪 Costanza in palestra (ultime 4 settimane)</h3>
         <div class="row between"><span class="hint">${doneCount} allenamenti su ${planned} previsti</span><b>${adh}%</b></div>
-        <div class="macro-bar"><div class="track"><div class="fill" style="width:${adh}%;background:var(--brand)"></div></div></div>
+        <div class="macro-bar"><div class="track"><div class="fill" style="width:${adh}%;background:var(--grad)"></div></div></div>
       </div>
       ${ws.length ? `
       <div class="card">

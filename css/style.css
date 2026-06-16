@@ -435,6 +435,19 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(var(--date-
 .wk-dot.done { background: var(--grad); border-color: transparent; color: var(--btn-fg); }
 .wk-dot.today { box-shadow: 0 0 0 2px var(--accent); }
 
+/* ---------- Progressi: riepilogo obiettivo ---------- */
+.goal-hero .hello { font-size: 1.02rem; font-weight: 700; font-family: var(--heading-font); }
+.goal-now { display: flex; align-items: baseline; gap: 7px; margin: 8px 0 14px; }
+.goal-now .gw { font-size: 2.2rem; font-weight: 800; font-family: var(--heading-font); color: var(--brand-soft); line-height: 1; }
+.goal-now .gu { font-size: .82rem; color: var(--muted); }
+.goalbar { margin: 2px 0 12px; }
+.g-track { position: relative; height: 8px; border-radius: 6px; background: var(--line-2); }
+.g-fill { position: absolute; left: 0; top: 0; height: 100%; border-radius: 6px; background: var(--grad); }
+.g-knob { position: absolute; top: 50%; width: 16px; height: 16px; border-radius: 50%; background: var(--brand); border: 2px solid var(--card-bg); transform: translate(-50%, -50%); box-shadow: var(--glow); }
+.g-ends { display: flex; justify-content: space-between; font-size: .76rem; color: var(--muted); margin-top: 9px; }
+.goal-msg { font-size: .88rem; color: var(--muted); }
+.goal-msg b { color: var(--text); }
+
 /* ---------- Pasti ---------- */
 .meal { border: 1px solid var(--line); background: var(--surface); border-radius: 14px; padding: 12px 13px; margin-bottom: 9px; transition: opacity .2s; }
 .meal .slot { font-size: .7rem; font-weight: 700; text-transform: uppercase; color: var(--brand-soft); letter-spacing: .6px; }
