@@ -779,7 +779,7 @@ const App = {
               <div class="ex-actions">
                 <button class="icon-btn" onclick="App.swapEx(${i},${j})">🔁 Cambia</button>
                 <button class="icon-btn" onclick="App.harderEx(${i},${j})">⬆️ Più difficile</button>
-                <a class="icon-btn" href="${Workouts.videoUrl(ex.name)}" target="_blank" rel="noopener">▶️ Video</a>
+                <button class="icon-btn" onclick="App.videoModal('${ex.key}')">▶️ Video${Workouts.VIDEO[ex.key] ? '' : ' 🔎'}</button>
                 <button class="icon-btn" onclick="App.exNoteModal('${ex.key}')">📝 Note${note ? ' •' : ''}</button>
               </div>
               ${note ? `<div class="ex-note">${esc(note)}</div>` : ''}
@@ -833,6 +833,27 @@ const App = {
     Store.save();
     toast('Variante più difficile ⬆️');
     this.renderAllenamento();
+  },
+
+  videoModal(key) {
+    const ex = Workouts.EX[key];
+    const vid = Workouts.VIDEO[key];
+    if (vid) {
+      showModal(`
+        <h3>▶️ ${ex.n}</h3>
+        <div class="video-wrap">
+          <iframe src="https://www.youtube-nocookie.com/embed/${vid}?rel=0&modestbranding=1" title="${esc(ex.n)}"
+                  frameborder="0" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>
+        </div>
+        <p class="hint mt mb0">Video dimostrativo. Se non parte, <a href="https://www.youtube.com/watch?v=${vid}" target="_blank" rel="noopener" style="color:var(--brand-soft)">aprilo su YouTube</a>.</p>
+        <button class="btn block mt" onclick="closeModal()">Chiudi</button>`);
+    } else {
+      showModal(`
+        <h3>▶️ ${ex.n}</h3>
+        <p class="hint">Per questo esercizio non ho ancora un video curato: apro una ricerca mirata su YouTube con i tutorial più affidabili.</p>
+        <a class="btn block" href="${Workouts.searchUrl(ex.n)}" target="_blank" rel="noopener">🔎 Cerca il tutorial su YouTube</a>
+        <button class="btn secondary block" style="margin-top:8px" onclick="closeModal()">Chiudi</button>`);
+    }
   },
 
   exNoteModal(key) {

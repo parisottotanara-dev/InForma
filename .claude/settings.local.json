@@ -5,7 +5,9 @@
       "WebFetch(domain:parisottotanara-dev.github.io)",
       "PowerShell(powershell -ExecutionPolicy Bypass -File \"D:\\\\[Download]\\\\Documenti\\\\Personale\\\\Claudio\\\\Progetto App Fitness\\\\tools\\\\make-icons.ps1\")",
       "mcp__Claude_Preview__preview_start",
-      "mcp__visualize__read_me"
+      "mcp__visualize__read_me",
+      "WebSearch",
+      "WebFetch(domain:www.youtube.com)"
     ]
   }
 }

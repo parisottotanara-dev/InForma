@@ -206,8 +206,18 @@ const Workouts = {
     return { key, name: x.n, muscle: x.m, diff: x.d, sets, reps, rest };
   },
 
-  videoUrl(name) {
-    return 'https://www.youtube.com/results?search_query=' + encodeURIComponent('come eseguire ' + name + ' tecnica corretta');
+  // Video curati (id YouTube, canali italiani) per gli esercizi più tecnici;
+  // per gli altri si usa una ricerca mirata.
+  VIDEO: {
+    squat: 'H1_YLMIkoCU', panca: '3CgfAV84cfM', panca_inc: 'KBog9sXe4I4',
+    stacco_rum: 'avFCLVJB0xs', stacco_man: 'avFCLVJB0xs', hip: 'IHk9Qn8ttX8',
+    trazioni: 'm2cauCtWj8E', rematore: 'x1HJqhZP0tg', rematore_man: 'x1HJqhZP0tg',
+    lento: 'fkW9CxGN4pk', affondi: 'Jezpb-6fuQ0', affondi_cl: 'Jezpb-6fuQ0',
+    goblet: 'RPUqGn8mbN4', goblet_kb: 'RPUqGn8mbN4'
+  },
+  videoId(key) { return this.VIDEO[key] || null; },
+  searchUrl(name) {
+    return 'https://www.youtube.com/results?search_query=' + encodeURIComponent(name + ' tutorial esecuzione corretta');
   },
 
   generate(profile, equip, space) {
