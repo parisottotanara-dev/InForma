@@ -399,10 +399,48 @@ const App = {
   },
 
   enter() {
-    this.applyTheme(Store.data.theme);
+    const d = Store.data;
+    // attrezzatura predefinita + migrazione scheda al motore consapevole degli attrezzi
+    if (!d.equipment) d.equipment = Workouts.defaultEquip(d.profile.location);
+    if (!d.workoutPlan || !d.workoutPlan.v2) {
+      d.workoutPlan = Workouts.generate(d.profile, d.equipment, d.space);
+      Store.save();
+    }
+    this.applyTheme(d.theme);
     this.checkBadges(true); // sblocca in silenzio i traguardi già maturati
     $('#onboarding').classList.remove('active');
     $('#app').classList.add('active');
+    this.show(this.currentView);
+  },
+
+  // indice della seduta (in workoutPlan.days) per una certa data, rispettando gli spostamenti
+  sessionDayIndexForDate(dateStr, weekdayIdx) {
+    const d = Store.data, wp = d.workoutPlan;
+    const ov = d.workoutSchedule ? d.workoutSchedule[dateStr] : undefined;
+    if (ov === 'rest') return -1;
+    if (typeof ov === 'number') return ov % wp.days.length;
+    const pos = wp.trainWeekdays.indexOf(weekdayIdx);
+    return pos >= 0 ? pos % wp.days.length : -1;
+  },
+
+  moveWorkoutToTomorrow() {
+    const d = Store.data;
+    const sIdx = this.sessionDayIndexForDate(todayStr(), todayIdx());
+    if (sIdx < 0) { toast('Oggi non è previsto allenamento'); return; }
+    d.workoutSchedule = d.workoutSchedule || {};
+    d.workoutSchedule[todayStr()] = 'rest';
+    const tom = new Date(); tom.setDate(tom.getDate() + 1);
+    const tomKey = `${tom.getFullYear()}-${String(tom.getMonth() + 1).padStart(2, '0')}-${String(tom.getDate()).padStart(2, '0')}`;
+    d.workoutSchedule[tomKey] = sIdx;
+    Store.save();
+    toast('Seduta spostata a domani 📅');
+    this.renderOggi();
+  },
+
+  resetSchedule() {
+    Store.data.workoutSchedule = {};
+    Store.save();
+    toast('Calendario ripristinato');
     this.show(this.currentView);
   },
 
@@ -465,22 +503,23 @@ const App = {
       </div>`;
     };
 
-    // allenamento di oggi
+    // allenamento di oggi (rispetta gli spostamenti del calendario)
     const wp = d.workoutPlan;
-    const pos = wp.trainWeekdays.indexOf(todayIdx());
+    const sIdx = this.sessionDayIndexForDate(todayStr(), todayIdx());
     const done = !!d.workoutLog[todayStr()];
     let workoutBody;
-    if (pos >= 0) {
-      const wd = wp.days[pos % wp.days.length];
+    if (sIdx >= 0) {
+      const wd = wp.days[sIdx];
       workoutBody = `
         <div class="row between">
           <div><b>${wd.name}</b><div class="hint">${wd.ex.length} esercizi · ${wp.split}</div></div>
           <span class="badge">${done ? '✔ Fatto' : 'In programma'}</span>
         </div>
         <div class="row mt">
-          <button class="btn small secondary grow" onclick="App.show('allenamento')">Vedi scheda</button>
-          <button class="btn small grow" onclick="App.toggleWorkoutDone()">${done ? 'Annulla ✔' : 'Segna come fatto ✔'}</button>
-        </div>`;
+          <button class="btn small grow" onclick="App.toggleWorkoutDone()">${done ? 'Annulla ✔' : 'Fatto ✔'}</button>
+          <button class="btn small secondary grow" onclick="App.show('allenamento')">Scheda</button>
+        </div>
+        ${done ? '' : `<button class="btn small secondary block" style="margin-top:8px" onclick="App.moveWorkoutToTomorrow()">📅 Oggi non posso · sposta a domani</button>`}`;
     } else {
       const c = wp.cardio.sessions[0];
       workoutBody = `<p class="hint mb0">Oggi è riposo. Recupero attivo consigliato: ${c.name.toLowerCase()}, ${c.dur}. E punta a ${wp.cardio.steps}.</p>`;
@@ -498,7 +537,7 @@ const App = {
         </div>
       </div>
       <div class="card">
-        <h3>${pos >= 0 ? '🏋️ Allenamento di oggi' : '🧘 Oggi riposo'}</h3>
+        <h3>${sIdx >= 0 ? '🏋️ Allenamento di oggi' : '🧘 Oggi riposo'}</h3>
         ${workoutBody}
         ${this.weekStrip()}
       </div>
@@ -533,7 +572,7 @@ const App = {
       const dt = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
       const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
       const isDone = !!d.workoutLog[key];
-      const planned = wp.trainWeekdays.includes(i);
+      const planned = this.sessionDayIndexForDate(key, i) >= 0;
       const cls = ['wk-dot', isDone ? 'done' : '', (planned && !isDone) ? 'planned' : '', i === todayIdx() ? 'today' : ''].filter(Boolean).join(' ');
       out += `<div class="wk"><div class="${cls}">${isDone ? '✓' : ''}</div><span>${letters[i]}</span></div>`;
     }
@@ -716,10 +755,12 @@ const App = {
   renderAllenamento() {
     const d = Store.data;
     const wp = d.workoutPlan;
-    const loc = wp.location;
     const trainDaysLbl = wp.trainWeekdays.map(i => DAYS_SHORT[i]).join(', ');
-
-    const locLbl = loc === 'casa' ? 'Corpo libero / casa' : loc === 'misto' ? 'Palestra + alternative casa' : 'Palestra';
+    const eq = d.equipment || Workouts.defaultEquip(wp.location);
+    const eqLbl = eq.length ? eq.map(id => (Workouts.EQUIP.find(e => e.id === id) || {}).label).filter(Boolean).join(', ') : 'Solo corpo libero';
+    const spaceLbl = ((Workouts.SPACES.find(s => s.id === d.space) || {}).label || 'Medio').toLowerCase();
+    const moved = Object.keys(d.workoutSchedule || {}).length > 0;
+    const dot = n => `<span class="ex-diff">${'●'.repeat(n)}${'○'.repeat(3 - n)}</span>`;
 
     const dayCard = (wd, i) => `
       <div class="card workout-day ${i === 0 ? 'open' : ''}" id="wd-${i}">
@@ -727,24 +768,33 @@ const App = {
           <div><h4>${wd.name}</h4><div class="hint">${wd.ex.length} esercizi · ${[...new Set(wd.ex.map(e => e.muscle))].slice(0, 3).join(' · ')}</div></div>
           <span class="muted">▾</span>
         </div>
-        <table class="ex-table">
-          ${wd.ex.map(ex => `
-            <tr>
-              <td>
-                <div class="ex-name">${loc === 'casa' ? ex.home : ex.gym}</div>
-                <div class="ex-muscle">${ex.muscle}</div>
-                ${loc === 'misto' ? `<div class="ex-home">🏠 A casa: ${ex.home}</div>` : ''}
-              </td>
-              <td class="ex-scheme">${ex.sets} × ${ex.reps}<div class="ex-rest">rec. ${typeof ex.rest === 'number' ? ex.rest + '″' : ex.rest}</div></td>
-            </tr>`).join('')}
-        </table>
+        <div class="ex-list">
+          ${wd.ex.map((ex, j) => {
+            const note = d.exNotes[ex.key] || '';
+            return `<div class="ex-item">
+              <div class="ex-line">
+                <div class="grow"><div class="ex-name">${ex.name}</div><div class="ex-muscle">${ex.muscle} · ${dot(ex.diff)}</div></div>
+                <div class="ex-scheme">${ex.sets} × ${ex.reps}<div class="ex-rest">rec ${typeof ex.rest === 'number' ? ex.rest + '″' : ex.rest}</div></div>
+              </div>
+              <div class="ex-actions">
+                <button class="icon-btn" onclick="App.swapEx(${i},${j})">🔁 Cambia</button>
+                <button class="icon-btn" onclick="App.harderEx(${i},${j})">⬆️ Più difficile</button>
+                <a class="icon-btn" href="${Workouts.videoUrl(ex.name)}" target="_blank" rel="noopener">▶️ Video</a>
+                <button class="icon-btn" onclick="App.exNoteModal('${ex.key}')">📝 Note${note ? ' •' : ''}</button>
+              </div>
+              ${note ? `<div class="ex-note">${esc(note)}</div>` : ''}
+            </div>`;
+          }).join('')}
+        </div>
       </div>`;
 
     $('#view-allenamento').innerHTML = `
       <div class="card">
         <h3>📋 ${wp.split}</h3>
-        <p class="hint">${wp.days.length} sedute a settimana · ${locLbl}<br>Giorni consigliati: <b>${trainDaysLbl}</b></p>
+        <p class="hint">${wp.days.length} sedute a settimana · giorni consigliati: <b>${trainDaysLbl}</b><br>🧰 ${eqLbl} · 📐 spazio ${spaceLbl}</p>
         ${this.weekStrip()}
+        ${moved ? `<p class="hint mb0 mt">📅 Hai spostato delle sedute. <a href="#" onclick="App.resetSchedule();return false" style="color:var(--brand-soft)">Ripristina i giorni consigliati</a></p>` : ''}
+        <button class="btn secondary block mt" onclick="App.equipmentModal()">⚙️ Attrezzatura e spazio</button>
       </div>
       ${wp.days.map(dayCard).join('')}
       <div class="card">
@@ -758,6 +808,81 @@ const App = {
         <h3>📌 Linee guida</h3>
         <ul class="bullets">${wp.notes.map(n => `<li>${n}</li>`).join('')}</ul>
       </div>`;
+  },
+
+  swapEx(dayI, exI) {
+    const d = Store.data, wp = d.workoutPlan;
+    const ex = wp.days[dayI].ex[exI];
+    const equip = d.equipment || Workouts.defaultEquip(wp.location);
+    const alts = Workouts.alternatives(ex.key, equip, Workouts.spaceValue(d.space), [ex.key]);
+    if (!alts.length) { toast('Nessuna alternativa coi tuoi attrezzi e spazio'); return; }
+    const next = alts[Math.floor(Math.random() * alts.length)];
+    wp.days[dayI].ex[exI] = Workouts.exObj(next, ex.sets, ex.reps, ex.rest);
+    Store.save();
+    toast('Esercizio cambiato 🔁');
+    this.renderAllenamento();
+  },
+
+  harderEx(dayI, exI) {
+    const d = Store.data, wp = d.workoutPlan;
+    const ex = wp.days[dayI].ex[exI];
+    const equip = d.equipment || Workouts.defaultEquip(wp.location);
+    const h = Workouts.harder(ex.key, equip, Workouts.spaceValue(d.space));
+    if (!h) { toast('È già la variante più impegnativa coi tuoi attrezzi 💪'); return; }
+    wp.days[dayI].ex[exI] = Workouts.exObj(h, ex.sets, ex.reps, ex.rest);
+    Store.save();
+    toast('Variante più difficile ⬆️');
+    this.renderAllenamento();
+  },
+
+  exNoteModal(key) {
+    const cur = Store.data.exNotes[key] || '';
+    showModal(`
+      <h3>📝 Note · ${Workouts.EX[key].n}</h3>
+      <textarea class="note-area" id="exnote" placeholder="Carico usato, sensazioni, promemoria di tecnica…">${esc(cur)}</textarea>
+      <div class="row mt">
+        <button class="btn secondary grow" onclick="closeModal()">Annulla</button>
+        <button class="btn grow" onclick="App.saveExNote('${key}')">Salva</button>
+      </div>`);
+  },
+
+  saveExNote(key) {
+    const v = document.getElementById('exnote').value.trim();
+    if (v) Store.data.exNotes[key] = v; else delete Store.data.exNotes[key];
+    Store.save();
+    closeModal();
+    toast('Nota salvata 📝');
+    this.renderAllenamento();
+  },
+
+  equipmentModal() {
+    const d = Store.data;
+    const eq = d.equipment || Workouts.defaultEquip(d.workoutPlan.location);
+    showModal(`
+      <h3>⚙️ Attrezzatura e spazio</h3>
+      <p class="hint">Scegli cosa hai davvero: scheda e alternative useranno solo questo. Il corpo libero è sempre incluso.</p>
+      <div class="choices grid2" id="eq-pick">
+        ${Workouts.EQUIP.map(e => `<button class="choice ${eq.includes(e.id) ? 'selected' : ''}" data-v="${e.id}" onclick="this.classList.toggle('selected')">${e.icon} ${e.label}</button>`).join('')}
+      </div>
+      <p class="lbl" style="font-weight:600;font-size:.85rem;margin:16px 0 6px">Spazio a disposizione</p>
+      <div class="choices" id="sp-pick">
+        ${Workouts.SPACES.map(s => `<button class="choice grow center ${d.space === s.id ? 'selected' : ''}" data-v="${s.id}" onclick="this.parentElement.querySelectorAll('.choice').forEach(b=>b.classList.remove('selected'));this.classList.add('selected')">${s.label}<small>${s.desc}</small></button>`).join('')}
+      </div>
+      <button class="btn block mt" onclick="App.saveEquipment()">Salva e aggiorna la scheda</button>
+      <button class="btn secondary block" style="margin-top:8px" onclick="closeModal()">Annulla</button>`);
+  },
+
+  saveEquipment() {
+    const equip = [...document.querySelectorAll('#eq-pick .choice.selected')].map(b => b.dataset.v);
+    const spBtn = document.querySelector('#sp-pick .choice.selected');
+    const d = Store.data;
+    d.equipment = equip;
+    d.space = spBtn ? spBtn.dataset.v : 'medio';
+    d.workoutPlan = Workouts.generate(d.profile, equip, d.space);
+    Store.save();
+    closeModal();
+    toast('Scheda adattata ai tuoi attrezzi 💪');
+    this.renderAllenamento();
   },
 
   /* ---------------- PROGRESSI ---------------- */

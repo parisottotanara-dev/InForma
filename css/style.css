@@ -519,6 +519,20 @@ nav.tabbar button.active::before { content: ''; position: absolute; top: 0; left
 .ex-table .ex-scheme { white-space: nowrap; text-align: right; font-weight: 700; }
 .ex-table .ex-rest { color: var(--muted); font-size: .74rem; text-align: right; font-weight: 400; }
 
+/* ---------- Allenamento: esercizi interattivi ---------- */
+.ex-list { margin-top: 6px; }
+.ex-item { padding: 11px 0; border-top: 1px solid var(--line); }
+.ex-item:first-child { border-top: none; }
+.ex-line { display: flex; align-items: flex-start; gap: 10px; }
+.ex-item .ex-name { font-weight: 600; font-size: .92rem; }
+.ex-item .ex-muscle { color: var(--muted); font-size: .74rem; margin-top: 2px; }
+.ex-diff { letter-spacing: 1px; color: var(--brand-soft); font-size: .64rem; }
+.ex-item .ex-scheme { white-space: nowrap; text-align: right; font-weight: 700; font-size: .9rem; }
+.ex-item .ex-rest { color: var(--muted); font-size: .72rem; font-weight: 400; }
+.ex-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+a.icon-btn { text-decoration: none; display: inline-block; }
+.ex-note { margin-top: 8px; font-size: .82rem; color: var(--muted); background: var(--surface); border-left: 2px solid var(--brand); border-radius: 0 8px 8px 0; padding: 7px 10px; }
+
 /* ---------- Liste ---------- */
 ul.clean { list-style: none; margin: 0; padding: 0; }
 ul.clean li { padding: 9px 0; border-bottom: 1px solid var(--line); font-size: .88rem; display: flex; justify-content: space-between; gap: 10px; }

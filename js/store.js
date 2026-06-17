@@ -25,7 +25,11 @@ const Store = {
       mealLog: {},        // {'YYYY-MM-DD': [indici dei pasti spuntati]}
       waterLog: {},       // {'YYYY-MM-DD': numero di bicchieri da 250 ml}
       notes: {},          // {'YYYY-MM-DD': testo del diario}
-      badges: []          // id dei traguardi già sbloccati (per il messaggio "nuovo!")
+      badges: [],         // id dei traguardi già sbloccati (per il messaggio "nuovo!")
+      equipment: null,    // array attrezzi disponibili (null = deriva da location)
+      space: 'medio',     // spazio disponibile: piccolo | medio | grande
+      workoutSchedule: {},// {'YYYY-MM-DD': indice seduta | 'rest'} override del calendario
+      exNotes: {}         // {chiaveEsercizio: nota personale}
     };
   },
 
