@@ -448,6 +448,42 @@ input[type=date]::-webkit-calendar-picker-indicator { filter: invert(var(--date-
 .goal-msg { font-size: .88rem; color: var(--muted); }
 .goal-msg b { color: var(--text); }
 
+/* ---------- Profilo: avatar e traguardi ---------- */
+.prof-head { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+.avatar { width: 54px; height: 54px; flex: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 800; font-family: var(--heading-font); color: var(--btn-fg); background: var(--grad); box-shadow: var(--glow); }
+.prof-name { font-size: 1.2rem; font-weight: 800; font-family: var(--heading-font); line-height: 1.2; }
+
+.badge-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(82px, 1fr)); gap: 10px; }
+.bdg { text-align: center; padding: 12px 6px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); opacity: .42; filter: grayscale(.7); transition: transform .12s, opacity .2s; }
+.bdg.on { opacity: 1; filter: none; border-color: var(--chip-border); background: var(--sel-bg); }
+.bdg.on:active { transform: scale(.96); }
+.bdg-ico { font-size: 1.65rem; line-height: 1.2; }
+.bdg-nm { font-size: .68rem; margin-top: 5px; color: var(--muted); }
+.bdg.on .bdg-nm { color: var(--text); font-weight: 600; }
+
+/* ---------- Acqua ---------- */
+.glasses { display: flex; flex-wrap: wrap; gap: 6px; }
+.glass { width: 17px; height: 23px; border-radius: 4px 4px 7px 7px; border: 1.5px solid var(--line-2); background: transparent; transition: background .2s; }
+.glass.full { background: var(--grad); border-color: transparent; }
+
+/* ---------- Diario ---------- */
+.note-area { width: 100%; min-height: 72px; resize: vertical; padding: 11px 12px; border: 1px solid var(--line-2); border-radius: 12px; background: var(--input-bg); color: var(--text); font-family: var(--body-font); font-size: .92rem; line-height: 1.5; }
+.note-area::placeholder { color: var(--muted-2); }
+.note-area:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--sel-bg); }
+
+/* ---------- Stato vuoto ---------- */
+.empty { text-align: center; padding: 18px 10px; color: var(--muted); }
+.empty-ico { font-size: 2rem; }
+.empty-t { font-weight: 700; color: var(--text); margin-top: 6px; font-family: var(--heading-font); }
+.empty-x { font-size: .84rem; margin: 4px auto 0; max-width: 280px; line-height: 1.5; }
+
+/* ---------- Onboarding: contatore passi ---------- */
+.ob-stepcount { font-size: .76rem; font-weight: 600; color: var(--brand-soft); letter-spacing: .4px; text-transform: uppercase; margin-bottom: 12px; }
+
+/* ---------- Tab bar: indicatore attivo ---------- */
+nav.tabbar button { position: relative; }
+nav.tabbar button.active::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 26px; height: 3px; border-radius: 0 0 4px 4px; background: var(--grad); }
+
 /* ---------- Pasti ---------- */
 .meal { border: 1px solid var(--line); background: var(--surface); border-radius: 14px; padding: 12px 13px; margin-bottom: 9px; transition: opacity .2s; }
 .meal .slot { font-size: .7rem; font-weight: 700; text-transform: uppercase; color: var(--brand-soft); letter-spacing: .6px; }

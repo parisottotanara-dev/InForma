@@ -205,7 +205,7 @@ const Onboarding = {
   render() {
     const steps = this.steps();
     $('#ob-progress').innerHTML = steps.map((_, i) => `<i class="${i <= this.step ? 'done' : ''}"></i>`).join('');
-    $('#ob-step').innerHTML = steps[this.step].render();
+    $('#ob-step').innerHTML = `<div class="ob-stepcount">Passo ${this.step + 1} di ${steps.length} · ${steps[this.step].title}</div>` + steps[this.step].render();
     $('#ob-back').style.visibility = this.step === 0 ? 'hidden' : 'visible';
     $('#ob-next').textContent = this.step === steps.length - 1 ? 'Crea il mio piano ✨' : 'Avanti';
 
@@ -368,6 +368,20 @@ const THEMES = [
   { id: 'teal',     name: 'Teal notte', sw: 'linear-gradient(135deg,#2dd4bf,#34d399)' }
 ];
 
+// Traguardi: calcolati al volo dai dati salvati (nessuno stato extra necessario)
+const ACHIEVEMENTS = [
+  { id: 'start',        icon: '🏁', name: 'Si comincia',          desc: 'Hai creato il tuo piano personalizzato',        test: () => true },
+  { id: 'firstweight',  icon: '⚖️', name: 'Primo check',          desc: 'Hai registrato il tuo primo peso',              test: d => d.weights.length >= 2 },
+  { id: 'water',        icon: '💧', name: 'Idratato',             desc: 'Raggiunto l\'obiettivo acqua in una giornata',  test: d => Object.values(d.waterLog || {}).some(g => g * 250 >= d.targets.water * 1000 - 1) },
+  { id: 'cleanday',     icon: '🍽️', name: 'Giornata pulita',      desc: 'Spuntati tutti i pasti in una giornata',        test: d => Object.values(d.mealLog || {}).some(a => a.length >= d.profile.mealsPerDay) },
+  { id: 'firstworkout', icon: '🏋️', name: 'Prima seduta',         desc: 'Completato il primo allenamento',               test: d => Object.keys(d.workoutLog).length >= 1 },
+  { id: 'workout5',     icon: '🔥', name: 'Costante',             desc: '5 allenamenti completati',                      test: d => Object.keys(d.workoutLog).length >= 5 },
+  { id: 'workout15',    icon: '💪', name: 'Inarrestabile',        desc: '15 allenamenti completati',                     test: d => Object.keys(d.workoutLog).length >= 15 },
+  { id: 'note',         icon: '📝', name: 'Riflessivo',           desc: 'Scritta la prima nota nel diario',              test: d => Object.values(d.notes || {}).some(n => n && n.trim()) },
+  { id: 'kg1',          icon: '📉', name: 'Primo traguardo',      desc: 'Avvicinato di almeno 1 kg all\'obiettivo',      test: d => App._towardGoal(d) >= 1 },
+  { id: 'goal',         icon: '🎯', name: 'Obiettivo raggiunto',  desc: 'Hai raggiunto il tuo peso obiettivo',           test: d => d.profile.goal !== 'mantenere' && d.weights.length > 0 && Math.abs(App._lastWeight(d) - d.profile.targetWeight) <= 0.3 }
+];
+
 const App = {
   currentView: 'oggi',
   dietDay: todayIdx(),
@@ -386,6 +400,7 @@ const App = {
 
   enter() {
     this.applyTheme(Store.data.theme);
+    this.checkBadges(true); // sblocca in silenzio i traguardi già maturati
     $('#onboarding').classList.remove('active');
     $('#app').classList.add('active');
     this.show(this.currentView);
@@ -410,6 +425,10 @@ const App = {
     const t = d.targets;
     const day = d.mealPlan.days[todayIdx()];
     const checked = d.mealLog[todayStr()] || [];
+    const glassesTarget = Math.max(1, Math.round(t.water * 1000 / 250));
+    const glassesDone = d.waterLog[todayStr()] || 0;
+    const waterL = (glassesDone * 250 / 1000).toFixed(1).replace('.', ',');
+    const note = d.notes[todayStr()] || '';
 
     // consumo di oggi, calcolato dai pasti spuntati
     const eaten = checked.reduce((a, i) => {
@@ -488,7 +507,18 @@ const App = {
         <div class="mt">
           ${day.slots.map((s, i) => this.mealHtml(s, i, todayIdx(), checked.includes(i), true)).join('')}
         </div>
-        <p class="hint mb0">💧 Bevi circa <b>${t.water} L</b> di acqua oggi.</p>
+      </div>
+      <div class="card">
+        <div class="row between"><h3 class="mb0">💧 Acqua</h3><span class="badge">${waterL} / ${String(t.water).replace('.', ',')} L</span></div>
+        <div class="glasses mt">${Array.from({ length: glassesTarget }, (_, i) => `<span class="glass ${i < glassesDone ? 'full' : ''}"></span>`).join('')}</div>
+        <div class="row mt">
+          <button class="btn small secondary" onclick="App.addWater(-1)" aria-label="Togli un bicchiere">−</button>
+          <button class="btn small grow" onclick="App.addWater(1)">+ Bicchiere (250 ml)</button>
+        </div>
+      </div>
+      <div class="card">
+        <h3>📝 Diario di oggi</h3>
+        <textarea class="note-area" placeholder="Come ti senti oggi? Sgarri, energia, umore… annota qui." oninput="App.saveNote(this.value)">${esc(note)}</textarea>
       </div>`;
   },
 
@@ -539,6 +569,7 @@ const App = {
     const i = arr.indexOf(slotIdx);
     if (i >= 0) arr.splice(i, 1); else arr.push(slotIdx);
     Store.save();
+    this.checkBadges();
     this.renderOggi();
   },
 
@@ -548,7 +579,50 @@ const App = {
     if (d.workoutLog[key]) delete d.workoutLog[key];
     else { d.workoutLog[key] = true; toast('Grande! Allenamento completato 💪'); }
     Store.save();
+    this.checkBadges();
     this.renderOggi();
+  },
+
+  // ---- Acqua ----
+  addWater(delta) {
+    const d = Store.data, key = todayStr();
+    d.waterLog[key] = Math.max(0, (d.waterLog[key] || 0) + delta);
+    Store.save();
+    this.checkBadges();
+    this.renderOggi();
+  },
+
+  // ---- Diario ----
+  saveNote(text) {
+    Store.data.notes[todayStr()] = text;
+    Store.save();
+    this.checkBadges();
+  },
+
+  // ---- Traguardi ----
+  _lastWeight(d) {
+    return d.weights.slice().sort((a, b) => a.date.localeCompare(b.date)).pop().kg;
+  },
+  _towardGoal(d) {
+    if (!d.weights.length || d.profile.goal === 'mantenere') return 0;
+    const start = d.targets.startWeight, cur = this._lastWeight(d);
+    const moved = d.profile.goal === 'dimagrire' ? start - cur : cur - start;
+    return Math.max(0, moved);
+  },
+  checkBadges(silent) {
+    const d = Store.data;
+    if (!d.badges) d.badges = [];
+    const earned = ACHIEVEMENTS.filter(a => { try { return a.test(d); } catch (e) { return false; } });
+    const newly = earned.filter(a => !d.badges.includes(a.id));
+    if (newly.length) {
+      newly.forEach(a => d.badges.push(a.id));
+      Store.save();
+      if (!silent) { const a = newly[newly.length - 1]; toast(`${a.icon} Traguardo sbloccato: ${a.name}!`); }
+    }
+  },
+
+  emptyState(icon, title, text) {
+    return `<div class="empty"><div class="empty-ico">${icon}</div><div class="empty-t">${title}</div><div class="empty-x">${text}</div></div>`;
   },
 
   swapMeal(dayIdx, slotIdx) {
@@ -766,16 +840,15 @@ const App = {
         <div class="row between"><span class="hint">${doneCount} allenamenti su ${planned} previsti</span><b>${adh}%</b></div>
         <div class="macro-bar"><div class="track"><div class="fill" style="width:${adh}%;background:var(--grad)"></div></div></div>
       </div>
-      ${ws.length ? `
       <div class="card">
         <h3>🗒️ Storico pesate</h3>
-        <ul class="clean">
+        ${ws.length > 1 ? `<ul class="clean">
           ${ws.slice(-10).reverse().map(w => `
             <li><span>${fmtDate(w.date)}</span>
                 <span><b>${w.kg.toFixed(1)} kg</b>
                 <button class="icon-btn" onclick="App.deleteWeight('${w.date}')">🗑</button></span></li>`).join('')}
-        </ul>
-      </div>` : ''}
+        </ul>` : this.emptyState('📭', 'Ancora pochi dati', 'Registra il tuo peso 2-3 volte a settimana: qui comparirà lo storico e nel grafico vedrai l\'andamento.')}
+      </div>
       <button class="btn secondary block" onclick="App.confirmRecalc()">♻️ Ricalcola il piano col peso attuale</button>
       <p class="hint mt">Ricalcola quando il peso cambia di 2-3 kg o ogni 4-6 settimane: calorie e macro si adattano ai tuoi progressi.</p>`;
   },
@@ -788,6 +861,7 @@ const App = {
     const existing = d.weights.find(w => w.date === key);
     if (existing) existing.kg = v; else d.weights.push({ date: key, kg: v });
     Store.save();
+    this.checkBadges();
     toast('Peso registrato ⚖️');
     this.renderProgressi();
   },
@@ -836,6 +910,9 @@ const App = {
     const act = Engine.ACTIVITY.find(a => a.id === p.activity);
     const goal = Engine.GOALS.find(g => g.id === p.goal);
     const exLbl = { lattosio: 'senza lattosio', glutine: 'senza glutine', pesce: 'niente pesce', frutta_secca: 'niente frutta secca' };
+    const initials = (p.name.trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('') || '🙂').toUpperCase();
+    const badges = ACHIEVEMENTS.map(a => ({ ...a, earned: (() => { try { return !!a.test(d); } catch (e) { return false; } })() }));
+    const earnedCount = badges.filter(b => b.earned).length;
 
     const curTheme = d.theme || 'teal';
     $('#view-profilo').innerHTML = `
@@ -851,7 +928,13 @@ const App = {
         </div>
       </div>
       <div class="card">
-        <h3>👤 ${esc(p.name)}</h3>
+        <div class="prof-head">
+          <div class="avatar">${initials}</div>
+          <div class="grow">
+            <div class="prof-name">${esc(p.name)}</div>
+            <div class="hint">${goal.label}${p.goal !== 'mantenere' ? ` · 🎯 ${p.targetWeight} kg` : ''}</div>
+          </div>
+        </div>
         <ul class="clean">
           <li><span>Età · Altezza · Peso</span><b>${p.age} anni · ${p.height} cm · ${p.weight} kg</b></li>
           <li><span>Obiettivo</span><b>${goal.label}${p.goal !== 'mantenere' ? ` → ${p.targetWeight} kg entro ${fmtDate(p.targetDate)}` : ''}</b></li>
@@ -871,6 +954,13 @@ const App = {
           <li><span>Acqua consigliata</span><b>${t.water} L</b></li>
         </ul>
         <p class="hint mb0">Metodo: formula di Mifflin-St Jeor per il metabolismo basale, fattore di attività + dispendio per seduta di allenamento, ritmo limitato a livelli sicuri (max 1% del peso a settimana in perdita, +0,35 kg in massa).</p>
+      </div>
+      <div class="card">
+        <div class="row between"><h3 class="mb0">🏆 Traguardi</h3><span class="badge">${earnedCount}/${badges.length}</span></div>
+        <div class="badge-grid mt">
+          ${badges.map(b => `<div class="bdg ${b.earned ? 'on' : ''}"><div class="bdg-ico">${b.icon}</div><div class="bdg-nm">${b.name}</div></div>`).join('')}
+        </div>
+        <p class="hint mb0 mt">${earnedCount < badges.length ? 'Continua così per sbloccarli tutti!' : 'Li hai sbloccati tutti — campione! 🏆'}</p>
       </div>
       <div class="card">
         <h3>💾 I tuoi dati</h3>

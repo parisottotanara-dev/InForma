@@ -22,7 +22,10 @@ const Store = {
       workoutPlan: null,  // scheda di allenamento
       weights: [],        // [{date:'YYYY-MM-DD', kg:Number}]
       workoutLog: {},     // {'YYYY-MM-DD': true} = allenamento completato
-      mealLog: {}         // {'YYYY-MM-DD': [indici dei pasti spuntati]}
+      mealLog: {},        // {'YYYY-MM-DD': [indici dei pasti spuntati]}
+      waterLog: {},       // {'YYYY-MM-DD': numero di bicchieri da 250 ml}
+      notes: {},          // {'YYYY-MM-DD': testo del diario}
+      badges: []          // id dei traguardi già sbloccati (per il messaggio "nuovo!")
     };
   },
 
