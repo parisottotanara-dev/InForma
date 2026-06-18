@@ -1,7 +1,7 @@
 /* InForma — service worker: rende l'app installabile e disponibile offline. */
 'use strict';
 
-const CACHE = 'informa-v2';
+const CACHE = 'informa-v3';
 const ASSETS = [
   './',
   './index.html',

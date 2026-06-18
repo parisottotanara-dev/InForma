@@ -1118,7 +1118,7 @@ const App = {
         <hr class="divider">
         <button class="btn danger block" onclick="App.confirmReset()">🗑 Azzera tutti i dati</button>
       </div>
-      <p class="hint center">InForma v1.0 — funziona completamente offline.<br>Questa app fornisce indicazioni generali e non sostituisce il parere di medici o nutrizionisti.</p>`;
+      <p class="hint center">InForma v1.1 — funziona completamente offline.<br>Questa app fornisce indicazioni generali e non sostituisce il parere di medici o nutrizionisti.</p>`;
   },
 
   editProfile() {
@@ -1190,6 +1190,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // Service worker solo quando l'app è servita via http(s)
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
+    // Auto-aggiornamento: quando arriva una versione nuova, ricarica una volta sola
+    let _refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (_refreshing) return;
+      _refreshing = true;
+      location.reload();
+    });
   }
 
   init();
