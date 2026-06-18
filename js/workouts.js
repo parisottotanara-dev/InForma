@@ -209,11 +209,28 @@ const Workouts = {
   // Video curati (id YouTube, canali italiani) per gli esercizi più tecnici;
   // per gli altri si usa una ricerca mirata.
   VIDEO: {
-    squat: 'H1_YLMIkoCU', panca: '3CgfAV84cfM', panca_inc: 'KBog9sXe4I4',
-    stacco_rum: 'avFCLVJB0xs', stacco_man: 'avFCLVJB0xs', hip: 'IHk9Qn8ttX8',
-    trazioni: 'm2cauCtWj8E', rematore: 'x1HJqhZP0tg', rematore_man: 'x1HJqhZP0tg',
-    lento: 'fkW9CxGN4pk', affondi: 'Jezpb-6fuQ0', affondi_cl: 'Jezpb-6fuQ0',
-    goblet: 'RPUqGn8mbN4', goblet_kb: 'RPUqGn8mbN4'
+    // Petto
+    panca: '3CgfAV84cfM', panca_inc: 'KBog9sXe4I4', chest_press: '3CgfAV84cfM',
+    piegamenti: 'b0Xhc1aN5jQ', piegamenti_g: 'b0Xhc1aN5jQ', piegamenti_d: 'b0Xhc1aN5jQ',
+    // Dorso
+    rematore: 'x1HJqhZP0tg', rematore_man: '_WnNr32nWsI', rematore_el: '_WnNr32nWsI',
+    lat: 'P8QKoy5sjv8', pulley: 'Xrk-QVt-A9g',
+    trazioni: 'm2cauCtWj8E', trazioni_el: 'm2cauCtWj8E', chin: 'm2cauCtWj8E', superman: 'l54klS76UVk',
+    // Spalle
+    lento: 'fkW9CxGN4pk', lento_bil: 'fkW9CxGN4pk', alzate: '6sT8LVeGVoc', alzate_el: '6sT8LVeGVoc', pike: 'zbMEEYX0Hjs',
+    // Gambe (quadricipiti)
+    squat: 'H1_YLMIkoCU', squat_cl: 'O3q4X0apJuo', goblet: 'RPUqGn8mbN4', goblet_kb: 'RPUqGn8mbN4',
+    pressa: 'LMTyPl_oo38', affondi: 'Jezpb-6fuQ0', affondi_cl: 'Jezpb-6fuQ0',
+    // Catena posteriore (femorali e glutei)
+    stacco_rum: 'avFCLVJB0xs', stacco_man: 'avFCLVJB0xs',
+    hip: 'IHk9Qn8ttX8', hip_cl: 'D8e2sbMWZBI', hip_1leg: 'AtVg2SpiC5o',
+    leg_curl: '1zevKZn_n1E', curl_slider: '1zevKZn_n1E',
+    // Bicipiti
+    curl: 'zb0ErMGEOX0', curl_mart: 'zb0ErMGEOX0', curl_el: 'zb0ErMGEOX0', curl_zaino: 'zb0ErMGEOX0',
+    // Tricipiti
+    pushdown: 'z-GYsUm3f9c', dip_sedie: 'B31xZB1frlI', pieg_stretti: 'b0Xhc1aN5jQ',
+    // Core
+    plank: 'Is-7PPaBcsM', crunch: 'Iep9ffXKQHw', hollow: '0DzyR-At8pU', leg_raise: 'rflCdQrSKtE'
   },
   videoId(key) { return this.VIDEO[key] || null; },
   searchUrl(name) {
