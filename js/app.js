@@ -30,7 +30,11 @@ function showModal(html) {
   $('#modal').innerHTML = html;
   $('#modal-overlay').classList.add('active');
 }
-function closeModal() { $('#modal-overlay').classList.remove('active'); }
+function closeModal() {
+  $('#modal-overlay').classList.remove('active');
+  // svuota il contenuto: rimuove eventuali iframe (video) e ne ferma subito l'audio
+  $('#modal').innerHTML = '';
+}
 
 /* =====================================================================
    ONBOARDING
