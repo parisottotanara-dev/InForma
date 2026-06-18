@@ -592,6 +592,7 @@ const App = {
         <div class="actions">
           <button class="icon-btn" onclick="App.toggleIngredients(${dayIdx},${slotIdx})">📋 Dettagli</button>
           <button class="icon-btn" onclick="App.swapMeal(${dayIdx},${slotIdx})">🔄 Sostituisci</button>
+          <button class="icon-btn" onclick="App.dislikeMeal(${dayIdx},${slotIdx})">🚫 Non mi piace</button>
           ${checkable ? `<button class="icon-btn" onclick="App.toggleMealDone(${slotIdx})">${isChecked ? '↩ Annulla' : '✔ Mangiato'}</button>` : ''}
         </div>
       </div>`;
@@ -675,6 +676,73 @@ const App = {
     }
   },
 
+  // ---- Preferenze alimentari ----
+  dislikeMeal(dayIdx, slotIdx) {
+    const d = Store.data;
+    const meal = Foods.byId(d.mealPlan.days[dayIdx].slots[slotIdx].id);
+    if (!d.excludedMeals.includes(meal.id)) d.excludedMeals.push(meal.id);
+    Meals.swap(d.mealPlan, dayIdx, slotIdx, d.profile, d.targets); // sostituisce subito (rispetta le preferenze)
+    Store.save();
+    toast(`«${meal.name}» non comparirà più`);
+    this.currentView === 'oggi' ? this.renderOggi() : this.renderDieta();
+  },
+
+  excludeIng(code) {
+    const d = Store.data;
+    if (!d.excludedIng.includes(code)) d.excludedIng.push(code);
+    d.mealPlan = Meals.generateWeek(d.profile, d.targets);
+    Store.save();
+    toast(`${Foods.ING[code][0]} escluso dal piano`);
+    this.renderDieta();
+    this.showShoppingList(); // riapre la lista aggiornata
+  },
+
+  restoreMeal(id) {
+    Store.data.excludedMeals = Store.data.excludedMeals.filter(x => x !== id);
+    Store.save();
+    this.foodPrefsModal();
+  },
+
+  foodPrefsModal() {
+    const d = Store.data;
+    const CAT = { pro: 'Carne, pesce e proteine', cer: 'Cereali e pane', lat: 'Latticini e uova', fv: 'Frutta e verdura', gra: 'Grassi e frutta secca', alt: 'Dispensa' };
+    const byCat = {};
+    Object.keys(Foods.ING).forEach(code => {
+      const cat = Foods.ING[code][6];
+      (byCat[cat] = byCat[cat] || []).push(code);
+    });
+    const catHtml = Object.keys(CAT).filter(c => byCat[c]).map(c => `
+      <h4 style="margin:16px 0 7px">${CAT[c]}</h4>
+      <div class="food-chips">
+        ${byCat[c].sort((a, b) => Foods.ING[a][0].localeCompare(Foods.ING[b][0])).map(code =>
+          `<button class="food-chip ${d.excludedIng.includes(code) ? 'off' : ''}" data-code="${code}" onclick="this.classList.toggle('off')">${Foods.ING[code][0]}</button>`).join('')}
+      </div>`).join('');
+    const exMeals = d.excludedMeals.map(id => Foods.byId(id)).filter(Boolean);
+    const exMealsHtml = exMeals.length ? `
+      <h4 style="margin:18px 0 7px">🚫 Piatti che hai escluso</h4>
+      <ul class="clean">
+        ${exMeals.map(m => `<li><span>${esc(m.name)}</span><button class="icon-btn" onclick="App.restoreMeal('${m.id}')">↩ Ripristina</button></li>`).join('')}
+      </ul>` : '';
+    showModal(`
+      <h3>🍽️ Preferenze alimentari</h3>
+      <p class="hint">Spegni gli alimenti che non vuoi: il piano eviterà i piatti che li contengono, restando bilanciato. Puoi riaccenderli quando vuoi.</p>
+      ${catHtml}
+      ${exMealsHtml}
+      <button class="btn block mt" onclick="App.saveFoodPrefs()">Salva e aggiorna il piano</button>
+      <button class="btn secondary block" style="margin-top:8px" onclick="closeModal()">Annulla</button>`);
+  },
+
+  saveFoodPrefs() {
+    const off = [...document.querySelectorAll('#modal .food-chip.off')].map(b => b.dataset.code);
+    const d = Store.data;
+    d.excludedIng = off;
+    d.mealPlan = Meals.generateWeek(d.profile, d.targets);
+    Store.save();
+    closeModal();
+    toast('Preferenze salvate, piano aggiornato 🍽️');
+    this.renderDieta();
+  },
+
   /* ---------------- DIETA ---------------- */
   // griglia di 3 barre macro (valore vs obiettivo), riusata da più schermate
   macroGrid(rows) {
@@ -713,11 +781,12 @@ const App = {
         <h3>🍽️ I pasti</h3>
         ${day.slots.map((s, i) => this.mealHtml(s, i, di, false, false)).join('')}
       </div>
-      <div class="row">
+      <button class="btn secondary block mt" onclick="App.foodPrefsModal()">🍽️ Preferenze alimentari${d.excludedIng.length || d.excludedMeals.length ? ` (${d.excludedIng.length + d.excludedMeals.length})` : ''}</button>
+      <div class="row mt">
         <button class="btn secondary grow" onclick="App.showShoppingList()">🛒 Lista spesa</button>
         <button class="btn secondary grow" onclick="App.regenerateMeals()">🔄 Rigenera</button>
       </div>
-      <p class="hint mt">Le grammature sono a crudo. Verdura e condimenti liberi entro il buonsenso; il piano centra le calorie con uno scarto fisiologico di ±5%.</p>`;
+      <p class="hint mt">Le grammature sono a crudo. Verdura e condimenti liberi entro il buonsenso; il piano centra le calorie con uno scarto fisiologico di ±5%. Dalla 🛒 lista spesa puoi togliere un alimento con la ✕.</p>`;
   },
 
   showShoppingList() {
@@ -725,10 +794,10 @@ const App = {
     const fmt = g => g >= 1000 ? (g / 1000).toFixed(1).replace('.', ',') + ' kg' : g + ' g';
     showModal(`
       <h3>🛒 Lista della spesa settimanale</h3>
-      <p class="hint">Quantità totali per seguire il piano per 7 giorni.</p>
+      <p class="hint">Quantità per 7 giorni. Tocca la ✕ accanto a un alimento per toglierlo: il piano si aggiorna evitandolo.</p>
       ${Object.entries(groups).map(([cat, items]) => `
         <h4 style="margin:14px 0 4px">${cat}</h4>
-        <ul class="clean">${items.map(i => `<li><span>${i.name}</span><b>${fmt(i.grams)}</b></li>`).join('')}</ul>`).join('')}
+        <ul class="clean">${items.map(i => `<li><span>${i.name}</span><span style="white-space:nowrap"><b>${fmt(i.grams)}</b> <button class="icon-btn" onclick="App.excludeIng('${i.code}')" aria-label="Togli ${i.name}">✕</button></span></li>`).join('')}</ul>`).join('')}
       <button class="btn block mt" onclick="closeModal()">Chiudi</button>`);
   },
 

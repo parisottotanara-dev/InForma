@@ -20,15 +20,18 @@ const Meals = {
 
   SLOT_LABELS: { colazione: 'Colazione', pranzo: 'Pranzo', cena: 'Cena', spuntino: 'Spuntino' },
 
-  /** Piatti compatibili con dieta ed esclusioni del profilo. */
+  /** Piatti compatibili con dieta, allergie e preferenze personali. */
   pool(slot, profile) {
     const excl = profile.exclusions || [];
-    let list = Foods.MEALS.filter(m => m.slot === slot);
+    const exIng = (typeof Store !== 'undefined' && Store.data.excludedIng) || [];
+    const exMeal = (typeof Store !== 'undefined' && Store.data.excludedMeals) || [];
+    let base = Foods.MEALS.filter(m => m.slot === slot);
 
-    if (profile.diet === 'vegana') list = list.filter(m => Foods.isVegan(m));
-    else if (profile.diet === 'vegetariana') list = list.filter(m => Foods.isVegetarian(m));
+    if (profile.diet === 'vegana') base = base.filter(m => Foods.isVegan(m));
+    else if (profile.diet === 'vegetariana') base = base.filter(m => Foods.isVegetarian(m));
 
-    const filtered = list.filter(m => {
+    // Allergie / categorie da evitare
+    const allergyOk = base.filter(m => {
       const f = Foods.flagsOf(m);
       if (excl.includes('lattosio') && f.has('lact')) return false;
       if (excl.includes('glutine') && f.has('glut')) return false;
@@ -36,9 +39,13 @@ const Meals = {
       if (excl.includes('frutta_secca') && f.has('nuts')) return false;
       return true;
     });
+    const list = allergyOk.length ? allergyOk : base;
 
-    // Se le esclusioni svuotano il pool, si ripiega sulla sola dieta
-    return filtered.length ? filtered : list;
+    // Preferenze personali: via i piatti esclusi e quelli con ingredienti esclusi
+    const pref = list.filter(m => !exMeal.includes(m.id) && !m.ing.some(([code]) => exIng.includes(code)));
+
+    // Se le preferenze svuotano lo slot, si ripiega per non lasciare il piano vuoto
+    return pref.length ? pref : list;
   },
 
   /** Scala un piatto perché si avvicini alle kcal target dello slot. */
@@ -129,7 +136,7 @@ const Meals = {
       day.slots.forEach(s => {
         const meal = Foods.byId(s.id);
         Foods.scaledIngredients(meal, s.factor).forEach(i => {
-          if (!sums[i.code]) sums[i.code] = { name: i.name, grams: 0, cat: i.cat };
+          if (!sums[i.code]) sums[i.code] = { code: i.code, name: i.name, grams: 0, cat: i.cat };
           sums[i.code].grams += i.grams;
         });
       });

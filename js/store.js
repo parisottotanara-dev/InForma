@@ -29,7 +29,9 @@ const Store = {
       equipment: null,    // array attrezzi disponibili (null = deriva da location)
       space: 'medio',     // spazio disponibile: piccolo | medio | grande
       workoutSchedule: {},// {'YYYY-MM-DD': indice seduta | 'rest'} override del calendario
-      exNotes: {}         // {chiaveEsercizio: nota personale}
+      exNotes: {},        // {chiaveEsercizio: nota personale}
+      excludedIng: [],    // codici ingredienti che l'utente non vuole
+      excludedMeals: []   // id dei piatti che l'utente non vuole
     };
   },
 

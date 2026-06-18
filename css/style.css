@@ -498,6 +498,12 @@ nav.tabbar button.active::before { content: ''; position: absolute; top: 0; left
 .icon-btn { background: var(--surface-2); border: 1px solid var(--line); border-radius: 9px; padding: 5px 11px; font-size: .76rem; color: var(--muted); cursor: pointer; transition: border-color .14s, color .14s; }
 .icon-btn:hover { border-color: var(--brand); color: var(--brand-soft); }
 
+/* ---------- Preferenze alimentari (pillole) ---------- */
+.food-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.food-chip { border: 1px solid var(--line-2); background: var(--surface); color: var(--text); border-radius: 999px; padding: 6px 12px; font-size: .8rem; cursor: pointer; transition: opacity .12s, background .12s, border-color .12s; }
+.food-chip:active { transform: scale(.97); }
+.food-chip.off { opacity: .55; text-decoration: line-through; border-style: dashed; color: var(--muted); background: transparent; }
+
 /* ---------- Tab giorni ---------- */
 .day-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 12px; }
 .day-tabs button { border: 1px solid var(--line-2); background: var(--surface); color: var(--text); border-radius: 11px; padding: 8px 0; cursor: pointer; font-size: .8rem; min-width: 44px; flex: 1; transition: all .15s; }
