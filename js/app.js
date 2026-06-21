@@ -1196,7 +1196,7 @@ const App = {
         <hr class="divider">
         <button class="btn danger block" onclick="App.confirmReset()">🗑 Azzera tutti i dati</button>
       </div>
-      <p class="hint center">InForma v1.1 — funziona completamente offline.<br>Questa app fornisce indicazioni generali e non sostituisce il parere di medici o nutrizionisti.</p>`;
+      <p class="hint center">InForma v1.2 — funziona completamente offline.<br>Questa app fornisce indicazioni generali e non sostituisce il parere di medici o nutrizionisti.</p>`;
   },
 
   editProfile() {
