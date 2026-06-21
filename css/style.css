@@ -500,9 +500,10 @@ nav.tabbar button.active::before { content: ''; position: absolute; top: 0; left
 
 /* ---------- Preferenze alimentari (pillole) ---------- */
 .food-chips { display: flex; flex-wrap: wrap; gap: 7px; }
-.food-chip { border: 1px solid var(--line-2); background: var(--surface); color: var(--text); border-radius: 999px; padding: 6px 12px; font-size: .8rem; cursor: pointer; transition: opacity .12s, background .12s, border-color .12s; }
+.food-chip { border: 1px dashed var(--line-2); background: transparent; color: var(--muted); border-radius: 999px; padding: 6px 12px; font-size: .8rem; cursor: pointer; opacity: .7; transition: opacity .12s, background .12s, border-color .12s, color .12s; }
 .food-chip:active { transform: scale(.97); }
-.food-chip.off { opacity: .55; text-decoration: line-through; border-style: dashed; color: var(--muted); background: transparent; }
+.food-chip.on { opacity: 1; color: var(--text); border: 1px solid var(--brand); background: var(--sel-bg); font-weight: 600; }
+.food-chip.on::before { content: '✓ '; color: var(--brand-soft); }
 
 /* ---------- Tab giorni ---------- */
 .day-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 12px; }

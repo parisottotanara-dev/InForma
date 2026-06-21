@@ -41,11 +41,18 @@ const Meals = {
     });
     const list = allergyOk.length ? allergyOk : base;
 
-    // Preferenze personali: via i piatti esclusi e quelli con ingredienti esclusi
-    const pref = list.filter(m => !exMeal.includes(m.id) && !m.ing.some(([code]) => exIng.includes(code)));
+    // Preferenze personali: solo i piatti voluti, fatti con gli alimenti scelti
+    const notExcludedMeal = list.filter(m => !exMeal.includes(m.id));
+    const pref = notExcludedMeal.filter(m => !m.ing.some(([code]) => exIng.includes(code)));
+    if (pref.length) return pref;
 
-    // Se le preferenze svuotano lo slot, si ripiega per non lasciare il piano vuoto
-    return pref.length ? pref : list;
+    // Nessun piatto rientra del tutto nelle scelte: ripiega sui più vicini
+    // (meno ingredienti non voluti), così il piano resta il più possibile su misura.
+    const ranked = notExcludedMeal
+      .map(m => ({ m, bad: m.ing.filter(([code]) => exIng.includes(code)).length }))
+      .sort((a, b) => a.bad - b.bad);
+    if (ranked.length) return ranked.slice(0, Math.max(3, Math.ceil(ranked.length * 0.35))).map(x => x.m);
+    return list;
   },
 
   /** Scala un piatto perché si avvicini alle kcal target dello slot. */

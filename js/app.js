@@ -719,7 +719,7 @@ const App = {
       <h4 style="margin:16px 0 7px">${CAT[c]}</h4>
       <div class="food-chips">
         ${byCat[c].sort((a, b) => Foods.ING[a][0].localeCompare(Foods.ING[b][0])).map(code =>
-          `<button class="food-chip ${d.excludedIng.includes(code) ? 'off' : ''}" data-code="${code}" onclick="this.classList.toggle('off')">${Foods.ING[code][0]}</button>`).join('')}
+          `<button class="food-chip ${d.excludedIng.includes(code) ? '' : 'on'}" data-code="${code}" onclick="this.classList.toggle('on')">${Foods.ING[code][0]}</button>`).join('')}
       </div>`).join('');
     const exMeals = d.excludedMeals.map(id => Foods.byId(id)).filter(Boolean);
     const exMealsHtml = exMeals.length ? `
@@ -729,7 +729,11 @@ const App = {
       </ul>` : '';
     showModal(`
       <h3>🍽️ Preferenze alimentari</h3>
-      <p class="hint">Spegni gli alimenti che non vuoi: il piano eviterà i piatti che li contengono, restando bilanciato. Puoi riaccenderli quando vuoi.</p>
+      <p class="hint">Scegli gli alimenti che vuoi nel tuo piano: quelli ✓ evidenziati sono attivi. Tocca per accenderli o spegnerli — i pasti useranno gli alimenti che hai scelto, restando bilanciati.</p>
+      <div class="row" style="gap:8px;margin-bottom:6px">
+        <button class="btn small secondary grow" onclick="document.querySelectorAll('#modal .food-chip').forEach(c=>c.classList.add('on'))">Scegli tutti</button>
+        <button class="btn small secondary grow" onclick="document.querySelectorAll('#modal .food-chip').forEach(c=>c.classList.remove('on'))">Azzera</button>
+      </div>
       ${catHtml}
       ${exMealsHtml}
       <button class="btn block mt" onclick="App.saveFoodPrefs()">Salva e aggiorna il piano</button>
@@ -737,9 +741,9 @@ const App = {
   },
 
   saveFoodPrefs() {
-    const off = [...document.querySelectorAll('#modal .food-chip.off')].map(b => b.dataset.code);
+    const excluded = [...document.querySelectorAll('#modal .food-chip:not(.on)')].map(b => b.dataset.code);
     const d = Store.data;
-    d.excludedIng = off;
+    d.excludedIng = excluded;
     d.mealPlan = Meals.generateWeek(d.profile, d.targets);
     Store.save();
     closeModal();
