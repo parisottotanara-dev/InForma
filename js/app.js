@@ -27,7 +27,8 @@ function toast(msg) {
 }
 
 function showModal(html) {
-  $('#modal').innerHTML = html;
+  // La "X" di chiusura viene aggiunta qui, così è presente in ogni pop-up
+  $('#modal').innerHTML = '<button class="modal-close" onclick="closeModal()" aria-label="Chiudi">✕</button>' + html;
   $('#modal-overlay').classList.add('active');
 }
 function closeModal() {
