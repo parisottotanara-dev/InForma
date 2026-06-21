@@ -582,7 +582,7 @@ ul.bullets li { margin-bottom: 6px; }
 .modal-close {
   position: sticky; top: 0; float: right;
   display: flex; align-items: center; justify-content: center;
-  width: 34px; height: 34px; margin: -2px -2px 2px 10px; flex: none;
+  width: 34px; height: 34px; margin: -12px -8px 4px 10px; flex: none;
   border-radius: 50%; border: 1px solid var(--line-2);
   background: var(--surface-2); color: var(--text);
   font-size: 1.05rem; line-height: 1; cursor: pointer; z-index: 3;
