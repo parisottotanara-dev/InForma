@@ -580,12 +580,12 @@ ul.bullets li { margin-bottom: 6px; }
 #modal h3 { margin-top: 0; }
 #modal h4 { color: var(--brand-soft); }
 .modal-close {
-  position: sticky; top: 0; float: right;
+  position: sticky; top: 6px; float: right;
   display: flex; align-items: center; justify-content: center;
-  width: 34px; height: 34px; margin: -12px -8px 4px 10px; flex: none;
+  width: 32px; height: 32px; margin: -6px 2px 0 12px; flex: none;
   border-radius: 50%; border: 1px solid var(--line-2);
   background: var(--surface-2); color: var(--text);
-  font-size: 1.05rem; line-height: 1; cursor: pointer; z-index: 3;
+  font-size: 1rem; line-height: 1; cursor: pointer; z-index: 3;
   transition: border-color .14s, color .14s, background .14s;
 }
 .modal-close:hover { border-color: var(--brand); color: var(--brand-soft); }
