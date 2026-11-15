@@ -195,10 +195,58 @@ function addNews(text, cls = '') {
 function addEvent(type, pid, text, data = {}) {
   S.inbox.push({ id: S.nextEv++, type, pid, text, data });
 }
-function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { /* storage pieno o bloccato */ } }
+function save() {
+  if (!S) return;
+  S.savedAt = Date.now();
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { /* storage pieno o bloccato */ }
+  Cloud.schedule();
+}
 function load() {
   try { const raw = localStorage.getItem(SAVE_KEY); if (raw) { S = JSON.parse(raw); return true; } } catch (e) { /* ignora */ }
   return false;
+}
+function hasLocalSave() { try { return !!localStorage.getItem(SAVE_KEY); } catch (e) { return false; } }
+
+/* Salvataggio sul proprio account claude.ai, quando il gioco è aperto come Artifact.
+   Fuori da claude.ai window.claude non esiste e resta solo il salvataggio locale. */
+const Cloud = {
+  doc: null, timer: null,
+  async init() {
+    if (!window.claude || !window.claude.use || typeof CompressionStream === 'undefined') return;
+    try {
+      const [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
+      if (!db || !user) return;
+      const id = await user.id();
+      this.doc = db.collection('data/users/' + id).doc('partita');
+      const snap = await this.doc.get();
+      const d = snap && snap.exists ? snap.data() : null;
+      if (d && d.data && (!S || (d.savedAt || 0) > (S.savedAt || 0))) {
+        S = JSON.parse(await gunzip(d.data));
+        try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { /* ignora */ }
+        UI.render();
+      } else if (S) this.schedule();
+    } catch (e) { this.doc = null; }
+  },
+  schedule() {
+    if (!this.doc) return;
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => this.push(), 1500);
+  },
+  async push() {
+    if (!this.doc || !S) return;
+    try { await this.doc.set({ data: await gzip(JSON.stringify(S)), savedAt: S.savedAt, v: 1 }); } catch (e) { /* riprova al prossimo salvataggio */ }
+  },
+  async clear() { clearTimeout(this.timer); if (this.doc) try { await this.doc.delete(); } catch (e) { /* ignora */ } },
+};
+async function gzip(str) {
+  const buf = new Uint8Array(await new Response(new Blob([str]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer());
+  let bin = ''; for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
+  return btoa(bin);
+}
+async function gunzip(b64) {
+  const bin = atob(b64), buf = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+  return new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
 }
 
 /* ================================================================== */
@@ -857,7 +905,7 @@ const UI = {
   go(t) { this.tab = t; this.render(); window.scrollTo(0, 0); },
 
   startScreen() {
-    const has = !!localStorage.getItem(SAVE_KEY);
+    const has = hasLocalSave();
     return `<div class="start">
       <div class="ball">🏀</div>
       <h1>Super <span>Agente</span> NBA</h1>
@@ -1115,8 +1163,14 @@ const UI = {
   },
 
   release(pid) {
-    if (!confirm(`Vuoi davvero interrompere il rapporto con ${P(pid).name}?`)) return;
-    releaseClient(pid); save(); this.closeModal(); this.render();
+    this.ask(`Vuoi davvero interrompere il rapporto con <b>${esc(P(pid).name)}</b>? Perderai un po' di reputazione.`, 'Interrompi',
+      () => { releaseClient(pid); save(); this.closeModal(); this.render(); });
+  },
+  // conferma dentro la pagina (confirm() del browser non funziona dentro claude.ai)
+  ask(html, yesLabel, onYes) {
+    this._yes = onYes;
+    this.openModal(`<p>${html}</p><div class="actions"><button class="btn bad" onclick="UI._yes()">${yesLabel}</button>
+      <button class="btn" onclick="UI.closeModal()">Annulla</button></div>`);
   },
 
   /* ---------- Lega ---------- */
@@ -1171,8 +1225,9 @@ const UI = {
       <div class="actions"><button class="btn primary" onclick="UI.reset(true)">Nuova carriera</button></div>`);
   },
   reset(force) {
-    if (!force && !confirm('Cancellare la partita e ricominciare?')) return;
+    if (!force) return this.ask('Cancellare la partita e ricominciare da capo?', 'Cancella', () => this.reset(true));
     try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* ignora */ }
+    Cloud.clear();
     S = null; this.closeModal(); this.render();
   },
 };
@@ -1181,3 +1236,4 @@ document.getElementById('modal').addEventListener('click', e => { if (e.target.i
 document.addEventListener('keydown', e => { if (e.key === 'Escape') UI.closeModal(); });
 load();
 UI.render();
+Cloud.init();
